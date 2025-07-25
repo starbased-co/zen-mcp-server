@@ -35,6 +35,9 @@ from ..shared.base_models import ConsolidatedFindings
 
 logger = logging.getLogger(__name__)
 
+# Module-level diagnostic log to confirm patched code is loaded
+logger.info("[DIAGNOSTIC] workflow_mixin.py module loaded - diagnostic logging is ACTIVE")
+
 
 class BaseWorkflowMixin(ABC):
     """
@@ -280,10 +283,9 @@ class BaseWorkflowMixin(ABC):
         Returns:
             True if assistant model should be used, False otherwise
         """
-        try:
-            return request.use_assistant_model if request.use_assistant_model is not None else True
-        except AttributeError:
-            return True
+        # Use getattr to safely access the attribute without AttributeError
+        use_assistant = getattr(request, "use_assistant_model", None)
+        return use_assistant if use_assistant is not None else True
 
     def get_step_guidance_message(self, request) -> str:
         """
@@ -1416,6 +1418,7 @@ class BaseWorkflowMixin(ABC):
 
     async def _call_expert_analysis(self, arguments: dict, request) -> dict:
         """Call external model for expert analysis"""
+        logger.info("[EXPERT_ANALYSIS_DEBUG] Starting expert analysis call...")
         try:
             # Model context should be resolved from early validation, but handle fallback for tests
             if not self._model_context:
@@ -1465,6 +1468,7 @@ class BaseWorkflowMixin(ABC):
                 logger.warning(warning)
 
             # Generate AI response - use request parameters if available
+            logger.info("[EXPERT_ANALYSIS_DEBUG] Calling provider.generate_content...")
             model_response = provider.generate_content(
                 prompt=prompt,
                 model_name=model_name,
@@ -1474,6 +1478,7 @@ class BaseWorkflowMixin(ABC):
                 use_websearch=self.get_request_use_websearch(request),
                 images=list(set(self.consolidated_findings.images)) if self.consolidated_findings.images else None,
             )
+            logger.info("[EXPERT_ANALYSIS_DEBUG] Successfully received response from provider")
 
             if model_response.content:
                 try:
@@ -1491,7 +1496,7 @@ class BaseWorkflowMixin(ABC):
                 return {"error": "No response from model", "status": "empty_response"}
 
         except Exception as e:
-            logger.error(f"Error calling expert analysis: {e}", exc_info=True)
+            logger.error(f"[EXPERT_ANALYSIS_DEBUG] Expert analysis failed: {e}", exc_info=True)
             return {"error": str(e), "status": "analysis_error"}
 
     def _process_work_step(self, step_data: dict):

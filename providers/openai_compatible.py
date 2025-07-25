@@ -406,6 +406,8 @@ class OpenAICompatibleProvider(ModelProvider):
         Returns:
             ModelResponse with generated content and metadata
         """
+        logging.info(f"[PROVIDER_DEBUG] OpenAICompatible.generate_content called with model: {model_name}")
+
         # Validate model name against allow-list
         if not self.validate_model_name(model_name):
             raise ValueError(f"Model '{model_name}' not in allowed models list. Allowed models: {self.allowed_models}")
@@ -500,11 +502,13 @@ class OpenAICompatibleProvider(ModelProvider):
 
         for attempt in range(max_retries):
             try:
+                logging.info(f"[PROVIDER_DEBUG] Attempt {attempt+1}/{max_retries} - Calling OpenAI API...")
                 # Generate completion
                 response = self.client.chat.completions.create(**completion_params)
 
                 # Extract content and usage
                 content = response.choices[0].message.content
+                logging.info(f"[PROVIDER_DEBUG] Successfully extracted content, length: {len(content)} chars")
                 usage = self._extract_usage(response)
 
                 return ModelResponse(
