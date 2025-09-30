@@ -1164,6 +1164,72 @@ check_api_keys() {
 
 
 # ----------------------------------------------------------------------------
+# Environment Variable Parsing Function
+# ----------------------------------------------------------------------------
+
+# Parse .env file and extract all valid environment variables
+parse_env_variables() {
+    local env_vars=""
+    
+    if [[ -f .env ]]; then
+        # Read .env file and extract non-empty, non-comment variables
+        while IFS= read -r line; do
+            # Skip comments, empty lines, and lines starting with #
+            if [[ -n "$line" && ! "$line" =~ ^[[:space:]]*# && "$line" =~ ^[[:space:]]*([^=]+)=(.*)$ ]]; then
+                local key="${BASH_REMATCH[1]}"
+                local value="${BASH_REMATCH[2]}"
+                
+                # Clean up key (remove leading/trailing whitespace)
+                key=$(echo "$key" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+                
+                # Skip if value is empty or just whitespace
+                if [[ -n "$value" && ! "$value" =~ ^[[:space:]]*$ ]]; then
+                    # Clean up value (remove leading/trailing whitespace and quotes)
+                    value=$(echo "$value" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | sed 's/^"//;s/"$//')
+                    
+                    # Remove inline comments (everything after # that's not in quotes)
+                    value=$(echo "$value" | sed 's/[[:space:]]*#.*$//')
+                    
+                    # Skip if value is a placeholder or empty after comment removal
+                    if [[ ! "$value" =~ ^your_.*_here$ && "$value" != "your_" && -n "$value" && ! "$value" =~ ^[[:space:]]*$ ]]; then
+                        env_vars+="$key=$value"$'\n'
+                    fi
+                fi
+            fi
+        done < .env
+    fi
+
+    # If no .env file or no valid vars, fall back to environment variables
+    if [[ -z "$env_vars" ]]; then
+        local api_keys=(
+            "GEMINI_API_KEY"
+            "OPENAI_API_KEY" 
+            "XAI_API_KEY"
+            "DIAL_API_KEY"
+            "OPENROUTER_API_KEY"
+            "CUSTOM_API_URL"
+            "CUSTOM_API_KEY"
+            "CUSTOM_MODEL_NAME"
+            "DISABLED_TOOLS"
+            "DEFAULT_MODEL"
+            "LOG_LEVEL"
+            "DEFAULT_THINKING_MODE_THINKDEEP"
+            "CONVERSATION_TIMEOUT_HOURS"
+            "MAX_CONVERSATION_TURNS"
+        )
+
+        for key_name in "${api_keys[@]}"; do
+            local key_value="${!key_name:-}"
+            if [[ -n "$key_value" && ! "$key_value" =~ ^your_.*_here$ ]]; then
+                env_vars+="$key_name=$key_value"$'\n'
+            fi
+        done
+    fi
+    
+    echo "$env_vars"
+}
+
+# ----------------------------------------------------------------------------
 # Claude Integration Functions
 # ----------------------------------------------------------------------------
 
@@ -1199,15 +1265,28 @@ check_claude_cli_integration() {
             print_warning "Found old Docker-based Zen registration, updating..."
             claude mcp remove zen -s user 2>/dev/null || true
 
-            # Re-add with correct Python command
-            if claude mcp add zen -s user -- "$python_cmd" "$server_path" 2>/dev/null; then
-                print_success "Updated Zen to become a standalone script"
+            # Re-add with correct Python command and environment variables
+            local env_vars=$(parse_env_variables)
+            local env_args=""
+            
+            # Convert environment variables to -e arguments
+            if [[ -n "$env_vars" ]]; then
+                while IFS= read -r line; do
+                    if [[ -n "$line" && "$line" =~ ^([^=]+)=(.*)$ ]]; then
+                        env_args+=" -e ${BASH_REMATCH[1]}=\"${BASH_REMATCH[2]}\""
+                    fi
+                done <<< "$env_vars"
+            fi
+            
+            local claude_cmd="claude mcp add zen -s user$env_args -- \"$python_cmd\" \"$server_path\""
+            if eval "$claude_cmd" 2>/dev/null; then
+                print_success "Updated Zen to become a standalone script with environment variables"
                 return 0
             else
                 echo ""
                 echo "Failed to update MCP registration. Please run manually:"
                 echo "  claude mcp remove zen -s user"
-                echo "  claude mcp add zen -s user -- $python_cmd $server_path"
+                echo "  $claude_cmd"
                 return 1
             fi
         else
@@ -1219,14 +1298,28 @@ check_claude_cli_integration() {
                 print_warning "Zen registered with different path, updating..."
                 claude mcp remove zen -s user 2>/dev/null || true
 
-                if claude mcp add zen -s user -- "$python_cmd" "$server_path" 2>/dev/null; then
-                    print_success "Updated Zen with current path"
+                # Re-add with current path and environment variables
+                local env_vars=$(parse_env_variables)
+                local env_args=""
+                
+                # Convert environment variables to -e arguments
+                if [[ -n "$env_vars" ]]; then
+                    while IFS= read -r line; do
+                        if [[ -n "$line" && "$line" =~ ^([^=]+)=(.*)$ ]]; then
+                            env_args+=" -e ${BASH_REMATCH[1]}=\"${BASH_REMATCH[2]}\""
+                        fi
+                    done <<< "$env_vars"
+                fi
+                
+                local claude_cmd="claude mcp add zen -s user$env_args -- \"$python_cmd\" \"$server_path\""
+                if eval "$claude_cmd" 2>/dev/null; then
+                    print_success "Updated Zen with current path and environment variables"
                     return 0
                 else
                     echo ""
                     echo "Failed to update MCP registration. Please run manually:"
                     echo "  claude mcp remove zen -s user"
-                    echo "  claude mcp add zen -s user -- $python_cmd $server_path"
+                    echo "  $claude_cmd"
                     return 1
                 fi
             fi
@@ -1237,19 +1330,46 @@ check_claude_cli_integration() {
         read -p "Add Zen to Claude Code? (Y/n): " -n 1 -r
         echo ""
         if [[ $REPLY =~ ^[Nn]$ ]]; then
+            local env_vars=$(parse_env_variables)
+            local env_args=""
+            
+            # Convert environment variables to -e arguments for manual command
+            if [[ -n "$env_vars" ]]; then
+                while IFS= read -r line; do
+                    if [[ -n "$line" && "$line" =~ ^([^=]+)=(.*)$ ]]; then
+                        env_args+=" -e ${BASH_REMATCH[1]}=\"${BASH_REMATCH[2]}\""
+                    fi
+                done <<< "$env_vars"
+            fi
+            
             print_info "To add manually later, run:"
-            echo "  claude mcp add zen -s user -- $python_cmd $server_path"
+            echo "  claude mcp add zen -s user$env_args -- $python_cmd $server_path"
             return 0
         fi
 
         print_info "Registering Zen with Claude Code..."
-        if claude mcp add zen -s user -- "$python_cmd" "$server_path" 2>/dev/null; then
-            print_success "Successfully added Zen to Claude Code"
+        
+        # Add with environment variables
+        local env_vars=$(parse_env_variables)
+        local env_args=""
+        
+        # Convert environment variables to -e arguments
+        if [[ -n "$env_vars" ]]; then
+            while IFS= read -r line; do
+                if [[ -n "$line" && "$line" =~ ^([^=]+)=(.*)$ ]]; then
+                    env_args+=" -e ${BASH_REMATCH[1]}=\"${BASH_REMATCH[2]}\""
+                fi
+            done <<< "$env_vars"
+        fi
+        
+        local claude_cmd="claude mcp add zen -s user$env_args -- \"$python_cmd\" \"$server_path\""
+        if eval "$claude_cmd" 2>/dev/null; then
+            print_success "Successfully added Zen to Claude Code with environment variables"
             return 0
         else
             echo ""
             echo "Failed to add automatically. To add manually, run:"
-            echo "  claude mcp add zen -s user -- $python_cmd $server_path"
+            echo "  $claude_cmd"
             return 1
         fi
     fi
@@ -1318,8 +1438,16 @@ except Exception as e:
 " && mv "$temp_file" "$config_path"
         fi
 
-        # Add new config
+        # Add new config with environment variables
+        local env_vars=$(parse_env_variables)
         local temp_file=$(mktemp)
+        local env_file=$(mktemp)
+        
+        # Write environment variables to a temporary file for Python to read
+        if [[ -n "$env_vars" ]]; then
+            echo "$env_vars" > "$env_file"
+        fi
+        
         python3 -c "
 import json
 import sys
@@ -1335,27 +1463,83 @@ if 'mcpServers' not in config:
     config['mcpServers'] = {}
 
 # Add zen server
-config['mcpServers']['zen'] = {
+zen_config = {
     'command': '$python_cmd',
     'args': ['$server_path']
 }
 
+# Add environment variables if they exist
+env_dict = {}
+try:
+    with open('$env_file', 'r') as f:
+        for line in f:
+            line = line.strip()
+            if '=' in line and line:
+                key, value = line.split('=', 1)
+                env_dict[key] = value
+except:
+    pass
+
+if env_dict:
+    zen_config['env'] = env_dict
+
+config['mcpServers']['zen'] = zen_config
+
 with open('$temp_file', 'w') as f:
     json.dump(config, f, indent=2)
 " && mv "$temp_file" "$config_path"
+        
+        # Clean up temporary env file
+        rm -f "$env_file" 2>/dev/null || true
 
     else
         print_info "Creating new Claude Desktop config..."
-        cat > "$config_path" << EOF
-{
-  "mcpServers": {
-    "zen": {
-      "command": "$python_cmd",
-      "args": ["$server_path"]
-    }
-  }
+        
+        # Create new config with environment variables
+        local env_vars=$(parse_env_variables)
+        local temp_file=$(mktemp)
+        local env_file=$(mktemp)
+        
+        # Write environment variables to a temporary file for Python to read
+        if [[ -n "$env_vars" ]]; then
+            echo "$env_vars" > "$env_file"
+        fi
+        
+        python3 -c "
+import json
+import sys
+
+config = {'mcpServers': {}}
+
+# Add zen server
+zen_config = {
+    'command': '$python_cmd',
+    'args': ['$server_path']
 }
-EOF
+
+# Add environment variables if they exist
+env_dict = {}
+try:
+    with open('$env_file', 'r') as f:
+        for line in f:
+            line = line.strip()
+            if '=' in line and line:
+                key, value = line.split('=', 1)
+                env_dict[key] = value
+except:
+    pass
+
+if env_dict:
+    zen_config['env'] = env_dict
+
+config['mcpServers']['zen'] = zen_config
+
+with open('$temp_file', 'w') as f:
+    json.dump(config, f, indent=2)
+" && mv "$temp_file" "$config_path"
+        
+        # Clean up temporary env file
+        rm -f "$env_file" 2>/dev/null || true
     fi
 
     if [[ $? -eq 0 ]]; then
@@ -1367,12 +1551,36 @@ EOF
         print_error "Failed to update Claude Desktop config"
         echo "Manual config location: $config_path"
         echo "Add this configuration:"
+        
+        # Generate example with actual environment variables for error case
+        example_env=""
+        env_vars=$(parse_env_variables)
+        if [[ -n "$env_vars" ]]; then
+            local first_entry=true
+            while IFS= read -r line; do
+                if [[ -n "$line" && "$line" =~ ^([^=]+)=(.*)$ ]]; then
+                    local key="${BASH_REMATCH[1]}"
+                    local value="your_$(echo "${key}" | tr '[:upper:]' '[:lower:]')"
+                    
+                    if [[ "$first_entry" == true ]]; then
+                        first_entry=false
+                        example_env="      \"$key\": \"$value\""
+                    else
+                        example_env+=",\n      \"$key\": \"$value\""
+                    fi
+                fi
+            done <<< "$env_vars"
+        fi
+        
         cat << EOF
 {
   "mcpServers": {
     "zen": {
       "command": "$python_cmd",
-      "args": ["$server_path"]
+      "args": ["$server_path"]$(if [[ -n "$example_env" ]]; then echo ","; fi)$(if [[ -n "$example_env" ]]; then echo "
+      \"env\": {
+$(echo -e "$example_env")
+      }"; fi)
     }
   }
 }
@@ -1474,6 +1682,103 @@ EOF
     fi
 }
 
+# Check and update Codex CLI configuration
+check_codex_cli_integration() {
+    # Check if Codex is installed
+    if ! command -v codex &> /dev/null; then
+        # Codex CLI not installed
+        return 0
+    fi
+
+    local codex_config="$HOME/.codex/config.toml"
+    
+    # Check if zen is already configured
+    if [[ -f "$codex_config" ]] && grep -q '\[mcp_servers\.zen\]' "$codex_config" 2>/dev/null; then
+        # Already configured
+        return 0
+    fi
+
+    # Ask user if they want to add Zen to Codex CLI
+    echo ""
+    read -p "Configure Zen for Codex CLI? (Y/n): " -n 1 -r
+    echo ""
+    if [[ $REPLY =~ ^[Nn]$ ]]; then
+        print_info "Skipping Codex CLI integration"
+        return 0
+    fi
+
+    print_info "Updating Codex CLI configuration..."
+
+    # Create config directory if it doesn't exist
+    mkdir -p "$(dirname "$codex_config")" 2>/dev/null || true
+
+    # Create backup if config exists
+    if [[ -f "$codex_config" ]]; then
+        cp "$codex_config" "${codex_config}.backup_$(date +%Y%m%d_%H%M%S)"
+    fi
+
+    # Get environment variables using shared function
+    local env_vars=$(parse_env_variables)
+
+    # Write zen configuration to config.toml
+    {
+        echo ""
+        echo "[mcp_servers.zen]"
+        echo "command = \"bash\""
+        echo "args = [\"-c\", \"for p in \$(which uvx 2>/dev/null) \$HOME/.local/bin/uvx /opt/homebrew/bin/uvx /usr/local/bin/uvx uvx; do [ -x \\\"\$p\\\" ] && exec \\\"\$p\\\" --from git+https://github.com/BeehiveInnovations/zen-mcp-server.git zen-mcp-server; done; echo 'uvx not found' >&2; exit 1\"]"
+        echo ""
+        echo "[mcp_servers.zen.env]"
+        echo "PATH = \"/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin:\$HOME/.local/bin:\$HOME/.cargo/bin:\$HOME/bin\""
+        if [[ -n "$env_vars" ]]; then
+            # Convert KEY=VALUE format to TOML KEY = "VALUE" format
+            while IFS= read -r line; do
+                if [[ -n "$line" && "$line" =~ ^([^=]+)=(.*)$ ]]; then
+                    local key="${BASH_REMATCH[1]}"
+                    local value="${BASH_REMATCH[2]}"
+                    # Escape backslashes first, then double quotes for TOML compatibility
+                    local escaped_value
+                    escaped_value=$(echo "$value" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g')
+                    echo "$key = \"$escaped_value\""
+                fi
+            done <<< "$env_vars"
+        fi
+    } >> "$codex_config"
+
+    if [[ $? -eq 0 ]]; then
+        print_success "Successfully configured Codex CLI"
+        echo "  Config: $codex_config"
+        echo "  Restart Codex CLI to use Zen MCP Server"
+    else
+        print_error "Failed to update Codex CLI config"
+        echo "Manual config location: $codex_config"
+        echo "Add this configuration:"
+        
+        # Generate example with actual environment variables for error case
+        env_vars=$(parse_env_variables)
+        cat << EOF
+[mcp_servers.zen]
+command = "sh"
+args = ["-c", "exec \$(which uvx 2>/dev/null || echo uvx) --from git+https://github.com/BeehiveInnovations/zen-mcp-server.git zen-mcp-server"]
+
+[mcp_servers.zen.env]
+PATH = "/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin:\$HOME/.local/bin:\$HOME/.cargo/bin:\$HOME/bin"
+EOF
+        
+        # Add environment variable examples only if they exist
+        if [[ -n "$env_vars" ]]; then
+            while IFS= read -r line; do
+                if [[ -n "$line" && "$line" =~ ^([^=]+)=(.*)$ ]]; then
+                    local key="${BASH_REMATCH[1]}"
+                    echo "${key} = \"your_$(echo "${key}" | tr '[:upper:]' '[:lower:]')\""
+                fi
+            done <<< "$env_vars"
+        else
+            # Show GEMINI_API_KEY example if no environment variables exist
+            echo "GEMINI_API_KEY = \"your_gemini_api_key_here\""
+        fi
+    fi
+}
+
 # Display configuration instructions
 display_config_instructions() {
     local python_cmd="$1"
@@ -1491,18 +1796,52 @@ display_config_instructions() {
     echo ""
 
     print_info "1. For Claude Code (CLI):"
-    echo -e "   ${GREEN}claude mcp add zen -s user -- $python_cmd $server_path${NC}"
+    # Show command with environment variables
+    local env_vars=$(parse_env_variables)
+    local env_args=""
+    if [[ -n "$env_vars" ]]; then
+        while IFS= read -r line; do
+            if [[ -n "$line" && "$line" =~ ^([^=]+)=(.*)$ ]]; then
+                env_args+=" -e ${BASH_REMATCH[1]}=\"${BASH_REMATCH[2]}\""
+            fi
+        done <<< "$env_vars"
+    fi
+    echo -e "   ${GREEN}claude mcp add zen -s user$env_args -- $python_cmd $server_path${NC}"
     echo ""
 
     print_info "2. For Claude Desktop:"
     echo "   Add this configuration to your Claude Desktop config file:"
     echo ""
+    
+    # Generate example with actual environment variables that exist
+    example_env=""
+    env_vars=$(parse_env_variables)
+    if [[ -n "$env_vars" ]]; then
+        local first_entry=true
+        while IFS= read -r line; do
+            if [[ -n "$line" && "$line" =~ ^([^=]+)=(.*)$ ]]; then
+                local key="${BASH_REMATCH[1]}"
+                local value="your_$(echo "${key}" | tr '[:upper:]' '[:lower:]')"
+                
+                if [[ "$first_entry" == true ]]; then
+                    first_entry=false
+                    example_env="           \"$key\": \"$value\""
+                else
+                    example_env+=",\n           \"$key\": \"$value\""
+                fi
+            fi
+        done <<< "$env_vars"
+    fi
+    
     cat << EOF
    {
      "mcpServers": {
        "zen": {
          "command": "$python_cmd",
-         "args": ["$server_path"]
+         "args": ["$server_path"]$(if [[ -n "$example_env" ]]; then echo ","; fi)$(if [[ -n "$example_env" ]]; then echo "
+         \"env\": {
+$(echo -e "$example_env")
+         }"; fi)
        }
      }
    }
@@ -1533,6 +1872,20 @@ EOF
    }
 EOF
     echo ""
+
+    print_info "For Codex CLI:"
+    echo "   Add this configuration to ~/.codex/config.toml:"
+    echo ""
+    cat << EOF
+   [mcp_servers.zen]
+   command = "bash"
+   args = ["-c", "for p in \$(which uvx 2>/dev/null) \$HOME/.local/bin/uvx /opt/homebrew/bin/uvx /usr/local/bin/uvx uvx; do [ -x \\\"\$p\\\" ] && exec \\\"\$p\\\" --from git+https://github.com/BeehiveInnovations/zen-mcp-server.git zen-mcp-server; done; echo 'uvx not found' >&2; exit 1"]
+
+   [mcp_servers.zen.env]
+   PATH = "/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin:\$HOME/.local/bin:\$HOME/.cargo/bin:\$HOME/bin"
+   GEMINI_API_KEY = "your_gemini_api_key_here"
+EOF
+    echo ""
 }
 
 # Display setup instructions
@@ -1546,6 +1899,76 @@ display_setup_instructions() {
     printf '%*s\n' "$((${#setup_header} + 12))" | tr ' ' '='
     echo ""
     print_success "Zen is ready to use!"
+    
+    # Display enabled/disabled tools if DISABLED_TOOLS is configured
+    if [[ -n "${DISABLED_TOOLS:-}" ]]; then
+        echo ""
+        print_info "Tool Configuration:"
+        
+        # Dynamically discover all available tools from the tools directory
+        # Excludes: __pycache__, shared modules, models.py, listmodels.py, version.py
+        local all_tools=()
+        for tool_file in tools/*.py; do
+            if [[ -f "$tool_file" ]]; then
+                local tool_name=$(basename "$tool_file" .py)
+                # Skip non-tool files
+                if [[ "$tool_name" != "models" && "$tool_name" != "listmodels" && "$tool_name" != "version" && "$tool_name" != "__init__" ]]; then
+                    all_tools+=("$tool_name")
+                fi
+            fi
+        done
+        
+        # Convert DISABLED_TOOLS to array
+        IFS=',' read -ra disabled_array <<< "$DISABLED_TOOLS"
+        
+        # Trim whitespace from disabled tools
+        local disabled_tools=()
+        for tool in "${disabled_array[@]}"; do
+            disabled_tools+=("$(echo "$tool" | xargs)")
+        done
+        
+        # Determine enabled tools
+        local enabled_tools=()
+        for tool in "${all_tools[@]}"; do
+            local is_disabled=false
+            for disabled in "${disabled_tools[@]}"; do
+                if [[ "$tool" == "$disabled" ]]; then
+                    is_disabled=true
+                    break
+                fi
+            done
+            if [[ "$is_disabled" == false ]]; then
+                enabled_tools+=("$tool")
+            fi
+        done
+        
+        # Display enabled tools
+        echo ""
+        echo -e "  ${GREEN}Enabled Tools (${#enabled_tools[@]}):${NC}"
+        local enabled_list=""
+        for tool in "${enabled_tools[@]}"; do
+            if [[ -n "$enabled_list" ]]; then
+                enabled_list+=", "
+            fi
+            enabled_list+="$tool"
+        done
+        echo "    $enabled_list"
+        
+        # Display disabled tools
+        echo ""
+        echo -e "  ${YELLOW}Disabled Tools (${#disabled_tools[@]}):${NC}"
+        local disabled_list=""
+        for tool in "${disabled_tools[@]}"; do
+            if [[ -n "$disabled_list" ]]; then
+                disabled_list+=", "
+            fi
+            disabled_list+="$tool"
+        done
+        echo "    $disabled_list"
+        
+        echo ""
+        echo "  To enable more tools, edit the DISABLED_TOOLS variable in .env"
+    fi
 }
 
 # ----------------------------------------------------------------------------
@@ -1705,12 +2128,15 @@ main() {
     # Step 10: Check Gemini CLI integration
     check_gemini_cli_integration "$script_dir"
 
-    # Step 11: Display log information
+    # Step 11: Check Codex CLI integration
+    check_codex_cli_integration
+
+    # Step 12: Display log information
     echo ""
     echo "Logs will be written to: $script_dir/$LOG_DIR/$LOG_FILE"
     echo ""
 
-    # Step 12: Handle command line arguments
+    # Step 13: Handle command line arguments
     if [[ "$arg" == "-f" ]] || [[ "$arg" == "--follow" ]]; then
         follow_logs
     else
