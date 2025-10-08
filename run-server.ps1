@@ -2021,7 +2021,7 @@ function Import-EnvFile {
         foreach ($line in $envContent) {
             if ($line -match '^([^#][^=]*?)=(.*)$') {
                 $key = $matches[1].Trim()
-                $value = $matches[2].Trim() -replace '^["'']| ["'']$', ''
+                $value = $matches[2].Trim() -replace '^["'']|["'']$', ''
                 
                 # Set environment variable for the current session
                 [Environment]::SetEnvironmentVariable($key, $value, "Process")
