@@ -23,6 +23,8 @@ The subagent:
 - Returns **only the final security report** (not intermediate steps)
 - Your main session stays **laser-focused** on debugging
 
+**Works with any supported CLI**: Codex can spawn Codex / Claude Code / Gemini CLI subagents, or mix and match between different CLIs.
+
 ---
 
 ### Cross-CLI Orchestration
@@ -76,7 +78,7 @@ You can make your own custom roles in `conf/cli_clients/` or tweak any of the sh
 ## Tool Parameters
 
 - `prompt`: Your question or task for the external CLI (required)
-- `cli_name`: Which CLI to use - `gemini` (default), or add your own in `conf/cli_clients/`
+- `cli_name`: Which CLI to use - `gemini` (default), `claude`, `codex`, or add your own in `conf/cli_clients/`
 - `role`: Preset role - `default`, `planner`, `codereviewer` (default: `default`)
 - `files`: Optional file paths for context (references only, CLI opens files itself)
 - `images`: Optional image paths for visual context
@@ -159,6 +161,7 @@ Each preset points to role-specific prompts in `systemprompts/clink/`. Duplicate
 
 Ensure the relevant CLI is installed and configured:
 
+- [Claude Code](https://www.anthropic.com/claude-code)
 - [Gemini CLI](https://github.com/google-gemini/gemini-cli)
 - [Codex CLI](https://docs.sourcegraph.com/codex)
 

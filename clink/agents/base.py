@@ -57,6 +57,7 @@ class BaseCLIAgent:
         *,
         role: ResolvedCLIRole,
         prompt: str,
+        system_prompt: str | None = None,
         files: Sequence[str],
         images: Sequence[str],
     ) -> AgentOutput:
@@ -64,7 +65,7 @@ class BaseCLIAgent:
         # accepted here only to keep parity with SimpleTool callers.
         _ = (files, images)
         # The runner simply executes the configured CLI command for the selected role.
-        command = self._build_command(role=role)
+        command = self._build_command(role=role, system_prompt=system_prompt)
         env = self._build_environment()
 
         # Resolve executable path for cross-platform compatibility (especially Windows)
@@ -189,7 +190,7 @@ class BaseCLIAgent:
             output_file_content=output_file_content,
         )
 
-    def _build_command(self, *, role: ResolvedCLIRole) -> list[str]:
+    def _build_command(self, *, role: ResolvedCLIRole, system_prompt: str | None) -> list[str]:
         base = list(self.client.executable)
         base.extend(self.client.internal_args)
         base.extend(self.client.config_args)
