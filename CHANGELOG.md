@@ -2,6 +2,20 @@
 
 <!-- version list -->
 
+## v9.0.0 (2025-10-08)
+
+### Chores
+
+- Sync version to config.py [skip ci]
+  ([`23c9b35`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/23c9b35d5226b07b59a4c4b3d7833ba81b019ea8))
+
+### Features
+
+- Claude Code as a CLI agent now supported. Mix and match: spawn claude code from within claude
+  code, or claude code from within codex.
+  ([`4cfaa0b`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/4cfaa0b6060769adfbd785a072526a5368421a73))
+
+
 ## v8.0.2 (2025-10-08)
 
 ### Bug Fixes
