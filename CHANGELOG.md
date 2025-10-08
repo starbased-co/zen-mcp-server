@@ -2,6 +2,24 @@
 
 <!-- version list -->
 
+## v8.0.1 (2025-10-08)
+
+### Bug Fixes
+
+- Resolve executable path for cross-platform compatibility in CLI agent
+  ([`f98046c`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/f98046c2fccaa7f9a24665a0d705a98006461da5))
+
+### Chores
+
+- Sync version to config.py [skip ci]
+  ([`52245b9`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/52245b91eaa5d720f8c3b21ead55248dd8e8bd57))
+
+### Testing
+
+- Fix clink agent tests to mock shutil.which() for executable resolution
+  ([`4370be3`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/4370be33b4b69a40456527213bcd62321a925a57))
+
+
 ## v8.0.0 (2025-10-07)
 
 ### Chores
