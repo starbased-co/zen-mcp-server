@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v9.0.1 (2025-10-14)
+
+### Bug Fixes
+
+- Add JSON output flag to gemini CLI configuration
+  ([`eb3dff8`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/eb3dff845828f60ff2659586883af622b8b035eb))
+
+### Chores
+
+- Sync version to config.py [skip ci]
+  ([`b9408aa`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/b9408aae8860d43b1da0ba67f9db98db7e4de2cf))
+
+
 ## v9.0.0 (2025-10-08)
 
 ### Chores
