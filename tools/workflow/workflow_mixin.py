@@ -1480,8 +1480,11 @@ class BaseWorkflowMixin(ABC):
 
             # Get system prompt for this tool with localization support
             base_system_prompt = self.get_system_prompt()
+            capability_augmented_prompt = self._augment_system_prompt_with_capabilities(
+                base_system_prompt, getattr(self._model_context, "capabilities", None)
+            )
             language_instruction = self.get_language_instruction()
-            system_prompt = language_instruction + base_system_prompt
+            system_prompt = language_instruction + capability_augmented_prompt
 
             # Check if tool wants system prompt embedded in main prompt
             if self.should_embed_system_prompt():

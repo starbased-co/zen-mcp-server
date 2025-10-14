@@ -52,6 +52,9 @@ from tools.simple.base import SimpleTool
 class ChatRequest(ToolRequest):
     prompt: str = Field(..., description="Your question or idea.")
     files: list[str] | None = Field(default_factory=list)
+    working_directory: str = Field(
+        ..., description="Absolute full directory path where the assistant AI can save generated code for implementation."
+    )
 
 class ChatTool(SimpleTool):
     def get_name(self) -> str:  # required by BaseTool
@@ -67,10 +70,17 @@ class ChatTool(SimpleTool):
         return ChatRequest
 
     def get_tool_fields(self) -> dict[str, dict[str, object]]:
-        return {"prompt": {"type": "string", "description": "Your question."}, "files": SimpleTool.FILES_FIELD}
+        return {
+            "prompt": {"type": "string", "description": "Your question."},
+            "files": SimpleTool.FILES_FIELD,
+            "working_directory": {
+                "type": "string",
+                "description": "Absolute full directory path where the assistant AI can save generated code for implementation.",
+            },
+        }
 
     def get_required_fields(self) -> list[str]:
-        return ["prompt"]
+        return ["prompt", "working_directory"]
 
     async def prepare_prompt(self, request: ChatRequest) -> str:
         return self.prepare_chat_style_prompt(request)

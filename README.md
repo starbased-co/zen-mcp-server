@@ -4,12 +4,14 @@
 
   [Zen in action](https://github.com/user-attachments/assets/0d26061e-5f21-4ab1-b7d0-f883ddc2c3da)
 
+👉 **[Watch more examples](#-watch-tools-in-action)**
+
 ### Your CLI + Multiple Models = Your AI Dev Team
 
-**Use the 🤖 CLI you love:**
-[Claude Code](https://www.anthropic.com/claude-code) · [Gemini CLI](https://github.com/google-gemini/gemini-cli) · [Codex CLI](https://github.com/openai/codex) · [Qwen Code CLI](https://qwenlm.github.io/qwen-code-docs/) · _and more_
+**Use the 🤖 CLI you love:**  
+[Claude Code](https://www.anthropic.com/claude-code) · [Gemini CLI](https://github.com/google-gemini/gemini-cli) · [Codex CLI](https://github.com/openai/codex) · [Qwen Code CLI](https://qwenlm.github.io/qwen-code-docs/) · [Cursor](https://cursor.com) · _and more_
 
-**With multiple models:**
+**With multiple models within a single prompt:**  
 Gemini · OpenAI · Anthropic · Grok · Azure · Ollama · OpenRouter · DIAL · On-Device Model
 
 </div>
@@ -20,16 +22,22 @@ Gemini · OpenAI · Anthropic · Grok · Azure · Ollama · OpenRouter · DIAL �
 
 The new **[`clink`](docs/tools/clink.md)** (CLI + Link) tool connects external AI CLIs directly into your workflow:
 
-- **Connect external CLIs** like [Gemini CLI](https://github.com/google-gemini/gemini-cli) and [Codex CLI](https://github.com/openai/codex) directly into your workflow
-- **Create Role presets** - `planner`, `codereviewer`, `default` for specialized tasks
-- **Full CLI capabilities** - Web search, file inspection, latest documentation lookups
-- **Seamless continuity** - Gemini participates as a first-class member with full conversation context
+- **Connect external CLIs** like [Gemini CLI](https://github.com/google-gemini/gemini-cli), [Codex CLI](https://github.com/openai/codex), and [Claude Code](https://www.anthropic.com/claude-code) directly into your workflow
+- **CLI Subagents** - Launch isolated CLI instances from _within_ your current CLI! Claude Code can spawn Codex subagents, Codex can spawn Gemini CLI subagents, etc. Offload heavy tasks (code reviews, bug hunting) to fresh contexts while your main session's context window remains unpolluted. Each subagent returns only final results.
+- **Context Isolation** - Run separate investigations without polluting your primary workspace
+- **Role Specialization** - Spawn `planner`, `codereviewer`, or custom role agents with specialized system prompts
+- **Full CLI Capabilities** - Web search, file inspection, MCP tool access, latest documentation lookups
+- **Seamless Continuity** - Sub-CLIs participate as first-class members with full conversation context between tools
 
 ```bash
-# Use consensus to decide on a feature, then hand off to Gemini for implementation
-"Use consensus to decide: dark mode or offline support next"
-"Continue with clink - implement the recommended feature"
-# Gemini receives the full debate context and starts coding immediately
+# Codex spawns Codex subagent for isolated code review in fresh context
+clink with codex codereviewer to audit auth module for security issues
+# Subagent reviews in isolation, returns final report without cluttering your context as codex reads each file and walks the directory structure
+
+# Consensus from different AI models → Implementation handoff with full context preservation between tools
+Use consensus with gpt-5 and gemini-pro to decide: dark mode or offline support next
+Continue with clink gemini - implement the recommended feature
+# Gemini receives full debate context and starts coding immediately
 ```
 
 👉 **[Learn more about clink](docs/tools/clink.md)**
@@ -117,7 +125,7 @@ and review into consideration to aid with its final pre-commit review.
 For best results when using [Claude Code](https://claude.ai/code):  
 
 - **Sonnet 4.5** - All agentic work and orchestration
-- **Gemini 2.5 Pro** - Deep thinking, additional code reviews, debugging and validations, pre-commit analysis
+- **Gemini 2.5 Pro** OR **GPT-5-Pro** - Deep thinking, additional code reviews, debugging and validations, pre-commit analysis
 </details>
 
 <details>
@@ -126,7 +134,7 @@ For best results when using [Claude Code](https://claude.ai/code):
 For best results when using [Codex CLI](https://developers.openai.com/codex/cli):  
 
 - **GPT-5 Codex Medium** - All agentic work and orchestration
-- **Gemini 2.5 Pro** - Deep thinking, additional code reviews, debugging and validations, pre-commit analysis
+- **Gemini 2.5 Pro** OR **GPT-5-Pro** - Deep thinking, additional code reviews, debugging and validations, pre-commit analysis
 </details>
 
 ## Quick Start (5 minutes)
@@ -183,8 +191,9 @@ cd zen-mcp-server
 "clink with cli_name=\"gemini\" role=\"planner\" to draft a phased rollout plan"
 ```
 
-👉 **[Complete Setup Guide](docs/getting-started.md)** with detailed installation, configuration for Gemini / Codex / Qwen, and troubleshooting  
+👉 **[Complete Setup Guide](docs/getting-started.md)** with detailed installation, configuration for Gemini / Codex / Qwen, and troubleshooting
 👉 **[Cursor & VS Code Setup](docs/getting-started.md#ide-clients)** for IDE integration instructions
+📺 **[Watch tools in action](#-watch-tools-in-action)** to see real-world examples
 
 ## Provider Configuration
 
@@ -196,7 +205,7 @@ Zen activates any provider that has credentials in your `.env`. See `.env.exampl
 
 **Collaboration & Planning** *(Enabled by default)*
 - **[`clink`](docs/tools/clink.md)** - Bridge requests to external AI CLIs (Gemini planner, codereviewer, etc.)
-- **[`chat`](docs/tools/chat.md)** - Brainstorm ideas, get second opinions, validate approaches
+- **[`chat`](docs/tools/chat.md)** - Brainstorm ideas, get second opinions, validate approaches. With capable models (GPT-5 Pro, Gemini 2.5 Pro), generates complete code / implementation
 - **[`thinkdeep`](docs/tools/thinkdeep.md)** - Extended reasoning, edge case analysis, alternative perspectives
 - **[`planner`](docs/tools/planner.md)** - Break down complex projects into structured, actionable plans
 - **[`consensus`](docs/tools/consensus.md)** - Get expert opinions from multiple AI models with stance steering
@@ -214,6 +223,7 @@ Zen activates any provider that has credentials in your `.env`. See `.env.exampl
 - **[`docgen`](docs/tools/docgen.md)** - Generate documentation with complexity analysis
 
 **Utilities**
+- **[`apilookup`](docs/tools/apilookup.md)** - Forces current-year API/SDK documentation lookups in a sub-process (saves tokens within the current context window), prevents outdated training data responses
 - **[`challenge`](docs/tools/challenge.md)** - Prevent "You're absolutely right!" responses with critical analysis
 - **[`tracer`](docs/tools/tracer.md)** *(disabled by default - [enable](#tool-configuration))* - Static analysis prompts for call-flow mapping
 
@@ -227,6 +237,7 @@ To optimize context window usage, only essential tools are enabled by default:
 **Enabled by default:**
 - `chat`, `thinkdeep`, `planner`, `consensus` - Core collaboration tools
 - `codereview`, `precommit`, `debug` - Essential code quality tools
+- `apilookup` - Rapid API/SDK information lookup
 - `challenge` - Critical thinking utility
 
 **Disabled by default:**
@@ -290,10 +301,71 @@ DISABLED_TOOLS=
 }
 ```
 
-**Note:** 
+**Note:**
 - Essential tools (`version`, `listmodels`) cannot be disabled
 - After changing tool configuration, restart your Claude session for changes to take effect
 - Each tool adds to context window usage, so only enable what you need
+
+</details>
+
+## 📺 Watch Tools In Action
+
+<details>
+<summary><b>Chat Tool</b> - Collaborative decision making and multi-turn conversations</summary>
+
+**Picking Redis vs Memcached:**
+
+[Chat Redis or Memcached_web.webm](https://github.com/user-attachments/assets/41076cfe-dd49-4dfc-82f5-d7461b34705d)
+
+**Multi-turn conversation with continuation:**
+
+[Chat With Gemini_web.webm](https://github.com/user-attachments/assets/37bd57ca-e8a6-42f7-b5fb-11de271e95db)
+
+</details>
+
+<details>
+<summary><b>Consensus Tool</b> - Multi-model debate and decision making</summary>
+
+**Multi-model consensus debate:**
+
+[Zen Consensus Debate](https://github.com/user-attachments/assets/76a23dd5-887a-4382-9cf0-642f5cf6219e)
+
+</details>
+
+<details>
+<summary><b>PreCommit Tool</b> - Comprehensive change validation</summary>
+
+**Pre-commit validation workflow:**
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/584adfa6-d252-49b4-b5b0-0cd6e97fb2c6" width="950">
+</div>
+
+</details>
+
+<details>
+<summary><b>API Lookup Tool</b> - Current vs outdated API documentation</summary>
+
+**Without Zen - outdated APIs:**
+
+[API without Zen](https://github.com/user-attachments/assets/01a79dc9-ad16-4264-9ce1-76a56c3580ee)
+
+**With Zen - current APIs:**
+
+[API with Zen](https://github.com/user-attachments/assets/5c847326-4b66-41f7-8f30-f380453dce22)
+
+</details>
+
+<details>
+<summary><b>Challenge Tool</b> - Critical thinking vs reflexive agreement</summary>
+
+**Without Zen:**
+
+![without_zen@2x](https://github.com/user-attachments/assets/64f3c9fb-7ca9-4876-b687-25e847edfd87)
+
+**With Zen:**
+
+![with_zen@2x](https://github.com/user-attachments/assets/9d72f444-ba53-4ab1-83e5-250062c6ee70)
 
 </details>
 

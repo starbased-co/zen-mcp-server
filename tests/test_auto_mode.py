@@ -137,7 +137,7 @@ class TestAutoMode:
             importlib.reload(config)
 
     @pytest.mark.asyncio
-    async def test_auto_mode_requires_model_parameter(self):
+    async def test_auto_mode_requires_model_parameter(self, tmp_path):
         """Test that auto mode enforces model parameter"""
         # Save original
         original = os.environ.get("DEFAULT_MODEL", "")
@@ -154,7 +154,7 @@ class TestAutoMode:
             # Mock the provider to avoid real API calls
             with patch.object(tool, "get_model_provider"):
                 # Execute without model parameter
-                result = await tool.execute({"prompt": "Test prompt"})
+                result = await tool.execute({"prompt": "Test prompt", "working_directory": str(tmp_path)})
 
             # Should get error
             assert len(result) == 1

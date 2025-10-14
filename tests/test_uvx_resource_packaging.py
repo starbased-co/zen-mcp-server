@@ -5,7 +5,7 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-from providers.openrouter_registry import OpenRouterModelRegistry
+from providers.registries.openrouter import OpenRouterModelRegistry
 
 
 class TestUvxPathResolution:
@@ -55,7 +55,7 @@ class TestUvxPathResolution:
             assert registry.config_path == config_path
             assert len(registry.list_models()) > 0
 
-    @patch("providers.model_registry_base.importlib.resources.files")
+    @patch("providers.registries.base.importlib.resources.files")
     def test_multiple_path_fallback(self, mock_files):
         """Test that file-system fallback works when resource loading fails."""
         mock_files.side_effect = Exception("Resource loading failed")

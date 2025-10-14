@@ -11,7 +11,7 @@ import tempfile
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-from providers.openai_provider import OpenAIModelProvider
+from providers.openai import OpenAIModelProvider
 
 
 class TestCustomOpenAITemperatureParameterFix:
@@ -79,7 +79,7 @@ class TestCustomOpenAITemperatureParameterFix:
             mock_client.chat.completions.create.return_value = mock_response
 
             # Create provider with custom config
-            with patch("providers.openrouter_registry.OpenRouterModelRegistry") as mock_registry_class:
+            with patch("providers.registries.openrouter.OpenRouterModelRegistry") as mock_registry_class:
                 # Mock registry to load our test config
                 mock_registry = Mock()
                 mock_registry_class.return_value = mock_registry
@@ -163,7 +163,7 @@ class TestCustomOpenAITemperatureParameterFix:
         mock_client.chat.completions.create.return_value = mock_response
 
         # Create provider with custom config
-        with patch("providers.openrouter_registry.OpenRouterModelRegistry") as mock_registry_class:
+        with patch("providers.registries.openrouter.OpenRouterModelRegistry") as mock_registry_class:
             # Mock registry to load our test config
             mock_registry = Mock()
             mock_registry_class.return_value = mock_registry
@@ -221,7 +221,7 @@ class TestCustomOpenAITemperatureParameterFix:
         mock_service.is_allowed.return_value = True
         mock_restriction_service.return_value = mock_service
 
-        with patch("providers.openrouter_registry.OpenRouterModelRegistry") as mock_registry_class:
+        with patch("providers.registries.openrouter.OpenRouterModelRegistry") as mock_registry_class:
             # Mock registry to return a custom OpenAI model
             mock_registry = Mock()
             mock_registry_class.return_value = mock_registry
@@ -267,7 +267,7 @@ class TestCustomOpenAITemperatureParameterFix:
         mock_service.is_allowed.return_value = True
         mock_restriction_service.return_value = mock_service
 
-        with patch("providers.openrouter_registry.OpenRouterModelRegistry") as mock_registry_class:
+        with patch("providers.registries.openrouter.OpenRouterModelRegistry") as mock_registry_class:
             # Mock registry to raise an exception
             mock_registry_class.side_effect = Exception("Registry not available")
 

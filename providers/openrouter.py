@@ -5,7 +5,7 @@ import logging
 from utils.env import get_env
 
 from .openai_compatible import OpenAICompatibleProvider
-from .openrouter_registry import OpenRouterModelRegistry
+from .registries.openrouter import OpenRouterModelRegistry
 from .shared import (
     ModelCapabilities,
     ProviderType,

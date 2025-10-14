@@ -47,6 +47,7 @@ class TestOpenRouterProvider:
         assert provider.validate_model_name("anthropic/claude-3-opus") is True
         assert provider.validate_model_name("google/any-model-name") is True
         assert provider.validate_model_name("groq/llama-3.1-8b") is True
+        assert provider.validate_model_name("grok-4") is True
 
         # Unknown models without provider prefix are rejected
         assert provider.validate_model_name("gpt-4") is False
@@ -88,6 +89,9 @@ class TestOpenRouterProvider:
         assert provider._resolve_model_name("o4-mini") == "openai/o4-mini"
         assert provider._resolve_model_name("haiku") == "anthropic/claude-3.5-haiku"
         assert provider._resolve_model_name("mistral") == "mistralai/mistral-large-2411"
+        assert provider._resolve_model_name("grok-4") == "x-ai/grok-4"
+        assert provider._resolve_model_name("grok4") == "x-ai/grok-4"
+        assert provider._resolve_model_name("grok") == "x-ai/grok-4"
         assert provider._resolve_model_name("deepseek") == "deepseek/deepseek-r1-0528"
         assert provider._resolve_model_name("r1") == "deepseek/deepseek-r1-0528"
 
@@ -278,7 +282,7 @@ class TestOpenRouterRegistry:
 
     def test_registry_loading(self):
         """Test registry loads models from config."""
-        from providers.openrouter_registry import OpenRouterModelRegistry
+        from providers.registries.openrouter import OpenRouterModelRegistry
 
         registry = OpenRouterModelRegistry()
 
@@ -297,7 +301,7 @@ class TestOpenRouterRegistry:
 
     def test_registry_capabilities(self):
         """Test registry provides correct capabilities."""
-        from providers.openrouter_registry import OpenRouterModelRegistry
+        from providers.registries.openrouter import OpenRouterModelRegistry
 
         registry = OpenRouterModelRegistry()
 
@@ -318,7 +322,7 @@ class TestOpenRouterRegistry:
 
     def test_multiple_aliases_same_model(self):
         """Test multiple aliases pointing to same model."""
-        from providers.openrouter_registry import OpenRouterModelRegistry
+        from providers.registries.openrouter import OpenRouterModelRegistry
 
         registry = OpenRouterModelRegistry()
 

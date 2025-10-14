@@ -14,9 +14,9 @@ from utils.env import get_env
 # These values are used in server responses and for tracking releases
 # IMPORTANT: This is the single source of truth for version and author info
 # Semantic versioning: MAJOR.MINOR.PATCH
-__version__ = "7.1.0"
+__version__ = "9.0.0"
 # Last update date in ISO format
-__updated__ = "2025-10-05"
+__updated__ = "2025-10-08"
 # Primary maintainer
 __author__ = "Fahad Gilani"
 
@@ -30,7 +30,8 @@ DEFAULT_MODEL = get_env("DEFAULT_MODEL", "auto") or "auto"
 # Auto mode detection - when DEFAULT_MODEL is "auto", Claude picks the model
 IS_AUTO_MODE = DEFAULT_MODEL.lower() == "auto"
 
-# Each provider (gemini.py, openai_provider.py, xai.py) defines its own MODEL_CAPABILITIES
+# Each provider (gemini.py, openai.py, xai.py, dial.py, openrouter.py, custom.py, azure_openai.py)
+# defines its own MODEL_CAPABILITIES
 # with detailed descriptions. Tools use ModelProviderRegistry.get_available_model_names()
 # to get models only from enabled providers (those with valid API keys).
 #

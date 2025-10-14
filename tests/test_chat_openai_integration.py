@@ -23,7 +23,7 @@ CASSETTE_CONTINUATION_PATH = CASSETTE_DIR / "chat_gpt5_continuation.json"
 
 @pytest.mark.asyncio
 @pytest.mark.no_mock_provider
-async def test_chat_auto_mode_with_openai(monkeypatch):
+async def test_chat_auto_mode_with_openai(monkeypatch, tmp_path):
     """Ensure ChatTool in auto mode selects gpt-5 via OpenAI and returns a valid response."""
     # Prepare environment so only OpenAI is available in auto mode
     env_updates = {
@@ -54,7 +54,7 @@ async def test_chat_auto_mode_with_openai(monkeypatch):
 
         # Reset registry and register only OpenAI provider
         ModelProviderRegistry.reset_for_testing()
-        from providers.openai_provider import OpenAIModelProvider
+        from providers.openai import OpenAIModelProvider
 
         ModelProviderRegistry.register_provider(ProviderType.OPENAI, OpenAIModelProvider)
 
@@ -63,10 +63,12 @@ async def test_chat_auto_mode_with_openai(monkeypatch):
 
         # Execute ChatTool request targeting gpt-5 directly (server normally resolves auto→model)
         chat_tool = ChatTool()
+        working_directory = str(tmp_path)
         arguments = {
             "prompt": "Use chat with gpt5 and ask how far the moon is from earth.",
             "model": "gpt-5",
             "temperature": 1.0,
+            "working_directory": working_directory,
         }
 
         result = await chat_tool.execute(arguments)
@@ -87,7 +89,7 @@ async def test_chat_auto_mode_with_openai(monkeypatch):
 
 @pytest.mark.asyncio
 @pytest.mark.no_mock_provider
-async def test_chat_openai_continuation(monkeypatch):
+async def test_chat_openai_continuation(monkeypatch, tmp_path):
     """Verify continuation_id workflow against gpt-5 using recorded OpenAI responses."""
 
     env_updates = {
@@ -115,7 +117,7 @@ async def test_chat_openai_continuation(monkeypatch):
             m.delenv(key, raising=False)
 
         ModelProviderRegistry.reset_for_testing()
-        from providers.openai_provider import OpenAIModelProvider
+        from providers.openai import OpenAIModelProvider
 
         ModelProviderRegistry.register_provider(ProviderType.OPENAI, OpenAIModelProvider)
 
@@ -126,12 +128,14 @@ async def test_chat_openai_continuation(monkeypatch):
         m.setattr(conversation_memory.uuid, "uuid4", lambda: fixed_thread_id)
 
         chat_tool = ChatTool()
+        working_directory = str(tmp_path)
 
         # First message: obtain continuation_id
         first_args = {
             "prompt": "In one word, which sells better: iOS app or macOS app?",
             "model": "gpt-5",
             "temperature": 1.0,
+            "working_directory": working_directory,
         }
         first_result = await chat_tool.execute(first_args)
 
@@ -152,6 +156,7 @@ async def test_chat_openai_continuation(monkeypatch):
             "model": "gpt-5",
             "continuation_id": continuation_id,
             "temperature": 1.0,
+            "working_directory": working_directory,
         }
 
         second_result = await chat_tool.execute(second_args)

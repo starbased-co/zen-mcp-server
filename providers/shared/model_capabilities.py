@@ -28,6 +28,8 @@ class ModelCapabilities:
         * Tool selection logic inspects attributes such as
           ``supports_extended_thinking`` or ``context_window`` to choose an
           appropriate model for a task.
+        * The ``allow_code_generation`` flag enables structured code generation
+          in the chat tool for models more capable than the primary CLI.
     """
 
     provider: ProviderType
@@ -51,6 +53,10 @@ class ModelCapabilities:
     supports_json_mode: bool = False
     supports_temperature: bool = True
     use_openai_response_api: bool = False
+    default_reasoning_effort: Optional[str] = None
+    allow_code_generation: bool = (
+        False  # Enables structured code generation in chat tool for substantial implementations
+    )
 
     # Additional attributes
     max_image_size_mb: float = 0.0

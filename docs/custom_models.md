@@ -35,27 +35,34 @@ This guide covers setting up multiple AI model providers including OpenRouter, c
 
 ## Model Aliases
 
-Zen ships two registries:
+Zen ships multiple registries:
 
-- `conf/openrouter_models.json` – metadata for models routed through OpenRouter. Override with `OPENROUTER_MODELS_CONFIG_PATH` if you maintain a custom copy.
-- `conf/custom_models.json` – metadata for local or self-hosted OpenAI-compatible endpoints used by the Custom provider. Override with `CUSTOM_MODELS_CONFIG_PATH` if needed.
+- `conf/openai_models.json` – native OpenAI catalogue (override with `OPENAI_MODELS_CONFIG_PATH`)
+- `conf/gemini_models.json` – native Google Gemini catalogue (`GEMINI_MODELS_CONFIG_PATH`)
+- `conf/xai_models.json` – native X.AI / GROK catalogue (`XAI_MODELS_CONFIG_PATH`)
+- `conf/openrouter_models.json` – OpenRouter catalogue (`OPENROUTER_MODELS_CONFIG_PATH`)
+- `conf/dial_models.json` – DIAL aggregation catalogue (`DIAL_MODELS_CONFIG_PATH`)
+- `conf/custom_models.json` – local/self-hosted OpenAI-compatible catalogue (`CUSTOM_MODELS_CONFIG_PATH`)
 
 Copy whichever file you need into your project (or point the corresponding `*_MODELS_CONFIG_PATH` env var at your own copy) and edit it to advertise the models you want.
 
 ### OpenRouter Models (Cloud)
 
-| Alias | Maps to OpenRouter Model |
-|-------|-------------------------|
-| `opus` | `anthropic/claude-opus-4` |
-| `sonnet`, `claude` | `anthropic/claude-sonnet-4` |
-| `haiku` | `anthropic/claude-3.5-haiku` |
-| `gpt4o`, `4o` | `openai/gpt-4o` |
-| `gpt4o-mini`, `4o-mini` | `openai/gpt-4o-mini` |
-| `pro`, `gemini` | `google/gemini-2.5-pro` |
-| `flash` | `google/gemini-2.5-flash` |
-| `mistral` | `mistral/mistral-large` |
-| `deepseek`, `coder` | `deepseek/deepseek-coder` |
-| `perplexity` | `perplexity/llama-3-sonar-large-32k-online` |
+The curated defaults in `conf/openrouter_models.json` include popular entries such as:
+
+| Alias | Canonical Model | Highlights |
+|-------|-----------------|------------|
+| `opus`, `claude-opus` | `anthropic/claude-opus-4.1` | Flagship Claude reasoning model with vision |
+| `sonnet`, `sonnet4.5` | `anthropic/claude-sonnet-4.5` | Balanced Claude with high context window |
+| `haiku` | `anthropic/claude-3.5-haiku` | Fast Claude option with vision |
+| `pro`, `gemini` | `google/gemini-2.5-pro` | Frontier Gemini with extended thinking |
+| `flash` | `google/gemini-2.5-flash` | Ultra-fast Gemini with vision |
+| `mistral` | `mistralai/mistral-large-2411` | Frontier Mistral (text only) |
+| `llama3` | `meta-llama/llama-3-70b` | Large open-weight text model |
+| `deepseek-r1` | `deepseek/deepseek-r1-0528` | DeepSeek reasoning model |
+| `perplexity` | `perplexity/llama-3-sonar-large-32k-online` | Search-augmented model |
+
+Consult the JSON file for the full list, aliases, and capability flags. Add new entries as OpenRouter releases additional models.
 
 ### Custom/Local Models
 
@@ -64,6 +71,14 @@ Copy whichever file you need into your project (or point the corresponding `*_MO
 | `local-llama`, `local` | `llama3.2` | Requires `CUSTOM_API_URL` configured |
 
 View the baseline OpenRouter catalogue in [`conf/openrouter_models.json`](conf/openrouter_models.json) and populate [`conf/custom_models.json`](conf/custom_models.json) with your local models.
+
+Native catalogues (`conf/openai_models.json`, `conf/gemini_models.json`, `conf/xai_models.json`, `conf/dial_models.json`) follow the same schema. Updating those files lets you:
+
+- Expose new aliases (e.g., map `enterprise-pro` to `gpt-5-pro`)
+- Advertise support for JSON mode or vision if the upstream provider adds it
+- Adjust token limits when providers increase context windows
+
+Because providers load the manifests on import, you can tweak capabilities without touching Python. Restart the server after editing the JSON files so changes are picked up.
 
 To control ordering in auto mode or the `listmodels` summary, adjust the
 [`intelligence_score`](model_ranking.md) for each entry (or rely on the automatic

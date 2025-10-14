@@ -75,7 +75,7 @@ async def test_consensus_multi_model_consultations(monkeypatch):
         # Reset providers and register only OpenAI & Gemini for deterministic behavior
         ModelProviderRegistry.reset_for_testing()
         from providers.gemini import GeminiModelProvider
-        from providers.openai_provider import OpenAIModelProvider
+        from providers.openai import OpenAIModelProvider
 
         ModelProviderRegistry.register_provider(ProviderType.OPENAI, OpenAIModelProvider)
         ModelProviderRegistry.register_provider(ProviderType.GOOGLE, GeminiModelProvider)

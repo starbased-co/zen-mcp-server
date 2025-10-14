@@ -12,9 +12,9 @@ except ImportError:  # pragma: no cover
 
 from utils.env import get_env, suppress_env_vars
 
-from .azure_registry import AzureModelRegistry
+from .openai import OpenAIModelProvider
 from .openai_compatible import OpenAICompatibleProvider
-from .openai_provider import OpenAIModelProvider
+from .registries.azure import AzureModelRegistry
 from .shared import ModelCapabilities, ModelResponse, ProviderType, TemperatureConstraint
 
 logger = logging.getLogger(__name__)

@@ -12,7 +12,7 @@ from pathlib import Path
 from utils.env import get_env
 from utils.file_utils import read_json_file
 
-from .shared import ModelCapabilities, ProviderType, TemperatureConstraint
+from ..shared import ModelCapabilities, ProviderType, TemperatureConstraint
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +34,7 @@ class CustomModelRegistryBase:
         self._default_filename = default_filename
         self._use_resources = False
         self._resource_package = "conf"
-        self._default_path = Path(__file__).parent.parent / "conf" / default_filename
+        self._default_path = Path(__file__).resolve().parents[3] / "conf" / default_filename
 
         if config_path:
             self.config_path = Path(config_path)
@@ -51,7 +51,7 @@ class CustomModelRegistryBase:
                     else:
                         raise AttributeError("resource accessor not available")
                 except Exception:
-                    self.config_path = Path(__file__).parent.parent / "conf" / default_filename
+                    self.config_path = Path(__file__).resolve().parents[3] / "conf" / default_filename
 
         self.alias_map: dict[str, str] = {}
         self.model_map: dict[str, ModelCapabilities] = {}
@@ -84,6 +84,11 @@ class CustomModelRegistryBase:
 
     def get_entry(self, model_name: str) -> dict | None:
         return self._extras.get(model_name)
+
+    def get_model_config(self, model_name: str) -> ModelCapabilities | None:
+        """Backwards-compatible accessor for registries expecting this helper."""
+
+        return self.model_map.get(model_name) or self.resolve(model_name)
 
     def iter_entries(self) -> Iterable[tuple[str, ModelCapabilities, dict]]:
         for model_name, capability in self.model_map.items():
@@ -208,7 +213,7 @@ class CustomModelRegistryBase:
 
 
 class CapabilityModelRegistry(CustomModelRegistryBase):
-    """Registry that returns `ModelCapabilities` objects with alias support."""
+    """Registry that returns :class:`ModelCapabilities` objects with alias support."""
 
     def __init__(
         self,

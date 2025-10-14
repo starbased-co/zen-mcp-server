@@ -1,6 +1,6 @@
 [project]
 name = "zen-mcp-server"
-version = "7.1.0"
+version = "9.0.0"
 description = "AI-powered MCP server with multiple model providers"
 requires-python = ">=3.10"
 dependencies = [
@@ -21,7 +21,15 @@ py-modules = ["server", "config"]
 "*" = ["conf/*.json"]
 
 [tool.setuptools.data-files]
-"conf" = ["conf/custom_models.json", "conf/openrouter_models.json", "conf/azure_models.json"]
+"conf" = [
+    "conf/custom_models.json",
+    "conf/openrouter_models.json",
+    "conf/azure_models.json",
+    "conf/openai_models.json",
+    "conf/gemini_models.json",
+    "conf/xai_models.json",
+    "conf/dial_models.json",
+]
 
 [project.scripts]
 zen-mcp-server = "server:run"

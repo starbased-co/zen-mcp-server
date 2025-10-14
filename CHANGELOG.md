@@ -2,6 +2,284 @@
 
 <!-- version list -->
 
+## v9.0.0 (2025-10-08)
+
+### Chores
+
+- Sync version to config.py [skip ci]
+  ([`23c9b35`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/23c9b35d5226b07b59a4c4b3d7833ba81b019ea8))
+
+### Features
+
+- Claude Code as a CLI agent now supported. Mix and match: spawn claude code from within claude
+  code, or claude code from within codex.
+  ([`4cfaa0b`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/4cfaa0b6060769adfbd785a072526a5368421a73))
+
+
+## v8.0.2 (2025-10-08)
+
+### Bug Fixes
+
+- Restore run-server quote trimming regex
+  ([`1de4542`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/1de454224c105891137134e2a25c2ee4f00dba45))
+
+### Chores
+
+- Sync version to config.py [skip ci]
+  ([`728fb43`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/728fb439b929c9dc37646b24537ae043208fda7d))
+
+
+## v8.0.1 (2025-10-08)
+
+### Bug Fixes
+
+- Resolve executable path for cross-platform compatibility in CLI agent
+  ([`f98046c`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/f98046c2fccaa7f9a24665a0d705a98006461da5))
+
+### Chores
+
+- Sync version to config.py [skip ci]
+  ([`52245b9`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/52245b91eaa5d720f8c3b21ead55248dd8e8bd57))
+
+### Testing
+
+- Fix clink agent tests to mock shutil.which() for executable resolution
+  ([`4370be3`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/4370be33b4b69a40456527213bcd62321a925a57))
+
+
+## v8.0.0 (2025-10-07)
+
+### Chores
+
+- Sync version to config.py [skip ci]
+  ([`4c34541`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/4c3454121c3c678cdfe8ea03fa77f4dd414df9bc))
+
+
+## v7.8.1 (2025-10-07)
+
+### Bug Fixes
+
+- Updated model description to fix test
+  ([`04f7ce5`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/04f7ce5b03804564263f53a765931edba9c320cd))
+
+### Chores
+
+- Sync version to config.py [skip ci]
+  ([`c27e81d`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/c27e81d6d2f22978816f798a161a869d1ab5f025))
+
+### Refactoring
+
+- Moved registries into a separate module and code cleanup
+  ([`7c36b92`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/7c36b9255a13007a10af4fadefc21aadfce482b0))
+
+
+## v7.8.0 (2025-10-07)
+
+### Chores
+
+- Sync version to config.py [skip ci]
+  ([`3e5fa96`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/3e5fa96c981bbd7b844a9887a518ffe266b78e9b))
+
+### Documentation
+
+- Consensus video
+  ([`2352684`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/23526841922a73c68094e5205e19af04a1f6c8cc))
+
+- Formatting
+  ([`7d7c74b`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/7d7c74b5a38b7d1adf132b8e28034017df7aa852))
+
+- Link to videos from main page
+  ([`e8ef193`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/e8ef193daba393b55a3beaaba49721bb9182378a))
+
+- Update README.md
+  ([`7b13543`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/7b13543824fc0af729daf753ecdddba9ee7d9f1e))
+
+### Features
+
+- All native providers now read from catalog files like OpenRouter / Custom configs. Allows for
+  greater control over the capabilities
+  ([`2a706d5`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/2a706d5720c0bf97b71c3e0fc95c15f78015bedf))
+
+- Provider cleanup
+  ([`9268dda`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/9268ddad2a07306351765b47098134512739f49f))
+
+### Refactoring
+
+- New base class for model registry / loading
+  ([`02d13da`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/02d13da897016d7491b4a10a1195983385d66654))
+
+
+## v7.7.0 (2025-10-07)
+
+### Chores
+
+- Sync version to config.py [skip ci]
+  ([`70ae62a`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/70ae62a2cd663c3abcabddd1be1bc6ed9512d7df))
+
+### Documentation
+
+- Video
+  ([`ed5dda7`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/ed5dda7c5a9439c2835cc69d76e6377169ad048a))
+
+### Features
+
+- More aliases
+  ([`5f0aaf5`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/5f0aaf5f69c9d188d817b5ffbf6738c61da40ec7))
+
+
+## v7.6.0 (2025-10-07)
+
+### Chores
+
+- Sync version to config.py [skip ci]
+  ([`c1c75ba`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/c1c75ba304c2840329650c46273e87eab9b05906))
+
+- Sync version to config.py [skip ci]
+  ([`0fa9b66`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/0fa9b6658099c8e0d79fda0c7d2347f62d0e6137))
+
+### Documentation
+
+- Info about AI client timeouts
+  ([`3ddfed5`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/3ddfed5ef09000791e1c94b041c43dc273ed53a8))
+
+### Features
+
+- Add support for openai/gpt-5-pro model
+  ([`abed075`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/abed075b2eaa99e9618202f47ff921094baae952))
+
+
+## v7.5.2 (2025-10-06)
+
+### Bug Fixes
+
+- Handle 429 response https://github.com/BeehiveInnovations/zen-mcp-server/issues/273
+  ([`cbe1d79`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/cbe1d7993276bd014b495cbd2d0ece1f5d7583d9))
+
+### Chores
+
+- Sync version to config.py [skip ci]
+  ([`74fdd36`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/74fdd36de92d34681fcc5a2f772c3d05634f0a55))
+
+
+## v7.5.1 (2025-10-06)
+
+### Chores
+
+- Sync version to config.py [skip ci]
+  ([`004e379`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/004e379cf2f1853829dccb15fa72ec18d282f1a4))
+
+
+## v7.5.0 (2025-10-06)
+
+### Chores
+
+- Sync version to config.py [skip ci]
+  ([`71e7cd5`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/71e7cd55b1f4955a6d718fddc0de419414d133b6))
+
+### Documentation
+
+- Video
+  ([`775e4d5`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/775e4d50b826858095c5f2a61a07fc01c4a00816))
+
+- Videos
+  ([`bb2066c`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/bb2066c909f6581ba40fc5ddef3870954ae553ab))
+
+### Features
+
+- Support for GPT-5-Pro highest reasoning model
+  https://github.com/BeehiveInnovations/zen-mcp-server/issues/275
+  ([`a65485a`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/a65485a1e52fc79739000426295a27d096f4c9d8))
+
+
+## v7.4.0 (2025-10-06)
+
+### Chores
+
+- Sync version to config.py [skip ci]
+  ([`76bf98e`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/76bf98e5cd972dabd3c79b25fcb9b9a717b23f6d))
+
+### Features
+
+- Improved prompt
+  ([`b1e9963`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/b1e9963991a41dff082ec1dce5691c318f105e6d))
+
+
+## v7.3.0 (2025-10-06)
+
+### Chores
+
+- Sync version to config.py [skip ci]
+  ([`e7920d0`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/e7920d0ed16c0e6de9d1ccaa0b58d3fb5cbd7f2f))
+
+### Documentation
+
+- Fixed typo
+  ([`3ab0aa8`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/3ab0aa8314ad5992bcb00de549a0fab2e522751d))
+
+- Fixed typo
+  ([`c17ce3c`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/c17ce3cf958d488b97fa7127942542ab514b58bd))
+
+- Update apilookup.md
+  ([`1918679`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/19186794edac4fce5523e671310aecff4cbfdc81))
+
+- Update README.md
+  ([`23c6c78`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/23c6c78bf152ede6e7b5f7b7770b12a8442845a3))
+
+### Features
+
+- Codex supports web-search natively but needs to be turned on, run-server script asks if the user
+  would like this done
+  ([`97ba7e4`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/97ba7e44ce7e3fd874759514ed2f0738033fc801))
+
+
+## v7.2.0 (2025-10-06)
+
+### Chores
+
+- Sync version to config.py [skip ci]
+  ([`1854b1e`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/1854b1e26b705cda0dc3f4d733647f1454aa0352))
+
+### Documentation
+
+- Updated
+  ([`bb57f71`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/bb57f719666ab6a586d835688ff8086282a5a0dc))
+
+### Features
+
+- New tool to perform apilookup (latest APIs / SDKs / language features etc)
+  https://github.com/BeehiveInnovations/zen-mcp-server/issues/204
+  ([`5bea595`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/5bea59540f58b3c45044828c10f131aed104dd1c))
+
+### Refactoring
+
+- De-duplicate roles to avoid explosion when more CLIs get added
+  ([`c42e9e9`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/c42e9e9c34d7ae4732e2e4fbed579b681a6d170d))
+
+
+## v7.1.1 (2025-10-06)
+
+### Bug Fixes
+
+- Clink missing in toml
+  ([`1ff77fa`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/1ff77faa800ad6c2dde49cad98dfa72035fe1c81))
+
+### Chores
+
+- Sync version to config.py [skip ci]
+  ([`e02e78d`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/e02e78d903b35f4c01b8039f4157e97b38d3ec7b))
+
+### Documentation
+
+- Example for codex cli
+  ([`344c42b`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/344c42bcbfb543bfd05cbc27fd5b419c76b77954))
+
+- Example for codex cli
+  ([`c3044de`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/c3044de7424e638dde5c8ec49adb6c3c7c5a60b2))
+
+- Update README.md
+  ([`2e719ae`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/2e719ae35e7979f7b83bd910867e79863a7f9ceb))
+
+
 ## v7.1.0 (2025-10-05)
 
 ### Chores

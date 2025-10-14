@@ -4,9 +4,9 @@ import logging
 
 from utils.env import get_env
 
-from .custom_registry import CustomEndpointModelRegistry
 from .openai_compatible import OpenAICompatibleProvider
-from .openrouter_registry import OpenRouterModelRegistry
+from .registries.custom import CustomEndpointModelRegistry
+from .registries.openrouter import OpenRouterModelRegistry
 from .shared import ModelCapabilities, ProviderType
 
 

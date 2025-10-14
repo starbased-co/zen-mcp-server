@@ -56,7 +56,12 @@ class TestLargePromptHandling:
     async def test_chat_large_prompt_detection(self, large_prompt):
         """Test that chat tool detects large prompts."""
         tool = ChatTool()
-        result = await tool.execute({"prompt": large_prompt})
+        temp_dir = tempfile.mkdtemp()
+        temp_dir = tempfile.mkdtemp()
+        try:
+            result = await tool.execute({"prompt": large_prompt, "working_directory": temp_dir})
+        finally:
+            shutil.rmtree(temp_dir, ignore_errors=True)
 
         assert len(result) == 1
         assert isinstance(result[0], TextContent)
@@ -73,9 +78,16 @@ class TestLargePromptHandling:
         """Test that chat tool works normally with regular prompts."""
         tool = ChatTool()
 
+        temp_dir = tempfile.mkdtemp()
+
         # This test runs in the test environment which uses dummy keys
         # The chat tool will return an error for dummy keys, which is expected
-        result = await tool.execute({"prompt": normal_prompt, "model": "gemini-2.5-flash"})
+        try:
+            result = await tool.execute(
+                {"prompt": normal_prompt, "model": "gemini-2.5-flash", "working_directory": temp_dir}
+            )
+        finally:
+            shutil.rmtree(temp_dir, ignore_errors=True)
 
         assert len(result) == 1
         output = json.loads(result[0].text)
@@ -105,7 +117,14 @@ class TestLargePromptHandling:
         try:
             # This test runs in the test environment which uses dummy keys
             # The chat tool will return an error for dummy keys, which is expected
-            result = await tool.execute({"prompt": "", "files": [temp_prompt_file], "model": "gemini-2.5-flash"})
+            result = await tool.execute(
+                {
+                    "prompt": "",
+                    "files": [temp_prompt_file],
+                    "model": "gemini-2.5-flash",
+                    "working_directory": temp_dir,
+                }
+            )
 
             assert len(result) == 1
             output = json.loads(result[0].text)
@@ -261,7 +280,13 @@ class TestLargePromptHandling:
                     mock_prepare_files.return_value = ("File content", [other_file])
 
                     # Use a small prompt to avoid triggering size limit
-                    await tool.execute({"prompt": "Test prompt", "files": [temp_prompt_file, other_file]})
+                    await tool.execute(
+                        {
+                            "prompt": "Test prompt",
+                            "files": [temp_prompt_file, other_file],
+                            "working_directory": os.path.dirname(temp_prompt_file),
+                        }
+                    )
 
                     # Verify handle_prompt_file was called with the original files list
                     mock_handle_prompt.assert_called_once_with([temp_prompt_file, other_file])
@@ -295,7 +320,11 @@ class TestLargePromptHandling:
             mock_get_provider.return_value = mock_provider
 
             # With the fix, this should now pass because we check at MCP transport boundary before adding internal content
-            result = await tool.execute({"prompt": exact_prompt})
+            temp_dir = tempfile.mkdtemp()
+            try:
+                result = await tool.execute({"prompt": exact_prompt, "working_directory": temp_dir})
+            finally:
+                shutil.rmtree(temp_dir, ignore_errors=True)
             output = json.loads(result[0].text)
             assert output["status"] != "resend_prompt"
 
@@ -305,7 +334,11 @@ class TestLargePromptHandling:
         tool = ChatTool()
         over_prompt = "x" * (MCP_PROMPT_SIZE_LIMIT + 1)
 
-        result = await tool.execute({"prompt": over_prompt})
+        temp_dir = tempfile.mkdtemp()
+        try:
+            result = await tool.execute({"prompt": over_prompt, "working_directory": temp_dir})
+        finally:
+            shutil.rmtree(temp_dir, ignore_errors=True)
         output = json.loads(result[0].text)
         assert output["status"] == "resend_prompt"
 
@@ -326,7 +359,11 @@ class TestLargePromptHandling:
             )
             mock_get_provider.return_value = mock_provider
 
-            result = await tool.execute({"prompt": ""})
+            temp_dir = tempfile.mkdtemp()
+            try:
+                result = await tool.execute({"prompt": "", "working_directory": temp_dir})
+            finally:
+                shutil.rmtree(temp_dir, ignore_errors=True)
             output = json.loads(result[0].text)
             assert output["status"] != "resend_prompt"
 
@@ -362,7 +399,11 @@ class TestLargePromptHandling:
             mock_model_context_class.return_value = mock_model_context
 
             # Should continue with empty prompt when file can't be read
-            result = await tool.execute({"prompt": "", "files": [bad_file]})
+            temp_dir = tempfile.mkdtemp()
+            try:
+                result = await tool.execute({"prompt": "", "files": [bad_file], "working_directory": temp_dir})
+            finally:
+                shutil.rmtree(temp_dir, ignore_errors=True)
             output = json.loads(result[0].text)
             assert output["status"] != "resend_prompt"
 
@@ -408,6 +449,7 @@ class TestLargePromptHandling:
                     "prompt": "Summarize the design decisions",
                     "files": [str(large_file)],
                     "model": "flash",
+                    "working_directory": str(tmp_path),
                     "_model_context": dummy_context,
                 }
             )
@@ -424,6 +466,7 @@ class TestLargePromptHandling:
         This test verifies that even if our internal prompt (with system prompts, history, etc.)
         exceeds MCP_PROMPT_SIZE_LIMIT, it should still work as long as the user's input is small.
         """
+
         tool = ChatTool()
 
         # Small user input that should pass MCP boundary check
@@ -432,62 +475,57 @@ class TestLargePromptHandling:
         # Mock a huge conversation history that would exceed MCP limits if incorrectly checked
         huge_history = "x" * (MCP_PROMPT_SIZE_LIMIT * 2)  # 100K chars = way over 50K limit
 
-        with (
-            patch.object(tool, "get_model_provider") as mock_get_provider,
-            patch("utils.model_context.ModelContext") as mock_model_context_class,
-        ):
-            from tests.mock_helpers import create_mock_provider
+        temp_dir = tempfile.mkdtemp()
+        original_prepare_prompt = tool.prepare_prompt
 
-            mock_provider = create_mock_provider(model_name="flash")
-            mock_get_provider.return_value = mock_provider
+        try:
+            with (
+                patch.object(tool, "get_model_provider") as mock_get_provider,
+                patch("utils.model_context.ModelContext") as mock_model_context_class,
+            ):
+                from tests.mock_helpers import create_mock_provider
+                from utils.model_context import TokenAllocation
 
-            # Mock ModelContext to avoid the comparison issue
-            from utils.model_context import TokenAllocation
+                mock_provider = create_mock_provider(model_name="flash")
+                mock_get_provider.return_value = mock_provider
 
-            mock_model_context = MagicMock()
-            mock_model_context.model_name = "flash"
-            mock_model_context.provider = mock_provider
-            mock_model_context.calculate_token_allocation.return_value = TokenAllocation(
-                total_tokens=1_048_576,
-                content_tokens=838_861,
-                response_tokens=209_715,
-                file_tokens=335_544,
-                history_tokens=335_544,
-            )
-            mock_model_context_class.return_value = mock_model_context
+                mock_model_context = MagicMock()
+                mock_model_context.model_name = "flash"
+                mock_model_context.provider = mock_provider
+                mock_model_context.calculate_token_allocation.return_value = TokenAllocation(
+                    total_tokens=1_048_576,
+                    content_tokens=838_861,
+                    response_tokens=209_715,
+                    file_tokens=335_544,
+                    history_tokens=335_544,
+                )
+                mock_model_context_class.return_value = mock_model_context
 
-            # Mock the prepare_prompt to simulate huge internal context
-            original_prepare_prompt = tool.prepare_prompt
+                async def mock_prepare_prompt(request):
+                    normal_prompt = await original_prepare_prompt(request)
+                    huge_internal_prompt = f"{normal_prompt}\n\n=== HUGE INTERNAL CONTEXT ===\n{huge_history}"
+                    assert len(huge_internal_prompt) > MCP_PROMPT_SIZE_LIMIT
+                    return huge_internal_prompt
 
-            async def mock_prepare_prompt(request):
-                # Call original to get normal processing
-                normal_prompt = await original_prepare_prompt(request)
-                # Add huge internal context (simulating large history, system prompts, files)
-                huge_internal_prompt = f"{normal_prompt}\n\n=== HUGE INTERNAL CONTEXT ===\n{huge_history}"
+                tool.prepare_prompt = mock_prepare_prompt
 
-                # Verify the huge internal prompt would exceed MCP limits if incorrectly checked
-                assert len(huge_internal_prompt) > MCP_PROMPT_SIZE_LIMIT
+                result = await tool.execute(
+                    {"prompt": small_user_prompt, "model": "flash", "working_directory": temp_dir}
+                )
+                output = json.loads(result[0].text)
 
-                return huge_internal_prompt
+                assert output["status"] != "resend_prompt"
 
-            tool.prepare_prompt = mock_prepare_prompt
+                mock_provider.generate_content.assert_called_once()
+                call_kwargs = mock_provider.generate_content.call_args[1]
+                actual_prompt = call_kwargs.get("prompt")
 
-            # This should succeed because we only check user input at MCP boundary
-            result = await tool.execute({"prompt": small_user_prompt, "model": "flash"})
-            output = json.loads(result[0].text)
-
-            # Should succeed even though internal context is huge
-            assert output["status"] != "resend_prompt"
-
-            # Verify the model was actually called with the huge prompt
-            mock_provider.generate_content.assert_called_once()
-            call_kwargs = mock_provider.generate_content.call_args[1]
-            actual_prompt = call_kwargs.get("prompt")
-
-            # Verify internal prompt was huge (proving we don't limit internal processing)
-            assert len(actual_prompt) > MCP_PROMPT_SIZE_LIMIT
-            assert huge_history in actual_prompt
-            assert small_user_prompt in actual_prompt
+                assert len(actual_prompt) > MCP_PROMPT_SIZE_LIMIT
+                assert huge_history in actual_prompt
+                assert small_user_prompt in actual_prompt
+        finally:
+            tool.prepare_prompt = original_prepare_prompt
+            shutil.rmtree(temp_dir, ignore_errors=True)
 
     @pytest.mark.asyncio
     async def test_mcp_boundary_vs_internal_processing_distinction(self):
@@ -500,27 +538,37 @@ class TestLargePromptHandling:
 
         # Test case 1: Large user input should fail at MCP boundary
         large_user_input = "x" * (MCP_PROMPT_SIZE_LIMIT + 1000)
-        result = await tool.execute({"prompt": large_user_input, "model": "flash"})
-        output = json.loads(result[0].text)
-        assert output["status"] == "resend_prompt"  # Should fail
-        assert "too large for MCP's token limits" in output["content"]
+        temp_dir = tempfile.mkdtemp()
+        try:
+            result = await tool.execute({"prompt": large_user_input, "model": "flash", "working_directory": temp_dir})
+            output = json.loads(result[0].text)
+            assert output["status"] == "resend_prompt"  # Should fail
+            assert "too large for MCP's token limits" in output["content"]
 
-        # Test case 2: Small user input should succeed even with huge internal processing
-        small_user_input = "Hello"
+            # Test case 2: Small user input should succeed even with huge internal processing
+            small_user_input = "Hello"
 
-        # This test runs in the test environment which uses dummy keys
-        # The chat tool will return an error for dummy keys, which is expected
-        result = await tool.execute({"prompt": small_user_input, "model": "gemini-2.5-flash"})
-        output = json.loads(result[0].text)
+            # This test runs in the test environment which uses dummy keys
+            # The chat tool will return an error for dummy keys, which is expected
+            result = await tool.execute(
+                {
+                    "prompt": small_user_input,
+                    "model": "gemini-2.5-flash",
+                    "working_directory": temp_dir,
+                }
+            )
+            output = json.loads(result[0].text)
 
-        # The test will fail with dummy API keys, which is expected behavior
-        # We're mainly testing that the tool processes small prompts correctly without size errors
-        if output["status"] == "error":
-            # If it's an API error, that's fine - we're testing prompt handling, not API calls
-            assert "API" in output["content"] or "key" in output["content"] or "authentication" in output["content"]
-        else:
-            # If somehow it succeeds (e.g., with mocked provider), check the response
-            assert output["status"] != "resend_prompt"
+            # The test will fail with dummy API keys, which is expected behavior
+            # We're mainly testing that the tool processes small prompts correctly without size errors
+            if output["status"] == "error":
+                # If it's an API error, that's fine - we're testing prompt handling, not API calls
+                assert "API" in output["content"] or "key" in output["content"] or "authentication" in output["content"]
+            else:
+                # If somehow it succeeds (e.g., with mocked provider), check the response
+                assert output["status"] != "resend_prompt"
+        finally:
+            shutil.rmtree(temp_dir, ignore_errors=True)
 
     @pytest.mark.asyncio
     async def test_continuation_with_huge_conversation_history(self):
@@ -547,6 +595,8 @@ class TestLargePromptHandling:
 
         # Ensure the history exceeds MCP limits
         assert len(huge_conversation_history) > MCP_PROMPT_SIZE_LIMIT
+
+        temp_dir = tempfile.mkdtemp()
 
         with (
             patch.object(tool, "get_model_provider") as mock_get_provider,
@@ -579,6 +629,7 @@ class TestLargePromptHandling:
                 "prompt": f"{huge_conversation_history}\n\n=== CURRENT REQUEST ===\n{small_continuation_prompt}",
                 "model": "flash",
                 "continuation_id": "test_thread_123",
+                "working_directory": temp_dir,
             }
 
             # Mock the conversation history embedding to simulate server.py behavior
@@ -628,6 +679,7 @@ class TestLargePromptHandling:
             finally:
                 # Restore original execute method
                 tool.__class__.execute = original_execute
+                shutil.rmtree(temp_dir, ignore_errors=True)
 
 
 if __name__ == "__main__":

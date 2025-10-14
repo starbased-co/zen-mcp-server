@@ -5,7 +5,7 @@ from utils.conversation_memory import get_thread
 from utils.storage_backend import get_storage_backend
 
 
-def test_first_response_persisted_in_conversation_history():
+def test_first_response_persisted_in_conversation_history(tmp_path):
     """Ensure the assistant's initial reply is stored for newly created threads."""
 
     # Clear in-memory storage to avoid cross-test contamination
@@ -13,7 +13,7 @@ def test_first_response_persisted_in_conversation_history():
     storage._store.clear()  # type: ignore[attr-defined]
 
     tool = ChatTool()
-    request = ChatRequest(prompt="First question?", model="local-llama")
+    request = ChatRequest(prompt="First question?", model="local-llama", working_directory=str(tmp_path))
     response_text = "Here is the initial answer."
 
     # Mimic the first tool invocation (no continuation_id supplied)

@@ -6,7 +6,7 @@ Issue: Custom OpenAI models (gpt-5, o3) use temperature despite the config havin
 
 from unittest.mock import Mock, patch
 
-from providers.openai_provider import OpenAIModelProvider
+from providers.openai import OpenAIModelProvider
 
 
 def test_issue_245_custom_openai_temperature_ignored():
@@ -14,7 +14,7 @@ def test_issue_245_custom_openai_temperature_ignored():
 
     with patch("utils.model_restrictions.get_restriction_service") as mock_restriction:
         with patch("providers.openai_compatible.OpenAI") as mock_openai:
-            with patch("providers.openrouter_registry.OpenRouterModelRegistry") as mock_registry_class:
+            with patch("providers.registries.openrouter.OpenRouterModelRegistry") as mock_registry_class:
 
                 # Mock restriction service
                 mock_service = Mock()

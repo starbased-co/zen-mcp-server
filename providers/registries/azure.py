@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import logging
 
-from .model_registry_base import CAPABILITY_FIELD_NAMES, CustomModelRegistryBase
-from .shared import ModelCapabilities, ProviderType, TemperatureConstraint
+from ..shared import ModelCapabilities, ProviderType, TemperatureConstraint
+from .base import CAPABILITY_FIELD_NAMES, CustomModelRegistryBase
 
 logger = logging.getLogger(__name__)
 

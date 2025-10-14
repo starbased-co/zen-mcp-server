@@ -189,7 +189,7 @@ class TestProviderRoutingBugs:
 
             # Register providers in priority order (like server.py)
             from providers.gemini import GeminiModelProvider
-            from providers.openai_provider import OpenAIModelProvider
+            from providers.openai import OpenAIModelProvider
             from providers.openrouter import OpenRouterProvider
 
             ModelProviderRegistry.register_provider(ProviderType.GOOGLE, GeminiModelProvider)

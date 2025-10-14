@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from providers.gemini import GeminiModelProvider
-from providers.openai_provider import OpenAIModelProvider
+from providers.openai import OpenAIModelProvider
 from providers.registry import ModelProviderRegistry
 from providers.shared import ProviderType
 from providers.xai import XAIModelProvider
@@ -200,7 +200,7 @@ class TestAutoModeComprehensive:
         assert tool.get_model_category() == expected_category
 
     @pytest.mark.asyncio
-    async def test_auto_mode_with_gemini_only_uses_correct_models(self):
+    async def test_auto_mode_with_gemini_only_uses_correct_models(self, tmp_path):
         """Test that auto mode with only Gemini uses flash for fast tools and pro for reasoning tools."""
 
         provider_config = {
@@ -234,9 +234,13 @@ class TestAutoModeComprehensive:
             )
 
             with patch.object(ModelProviderRegistry, "get_provider_for_model", return_value=mock_provider):
+                workdir = tmp_path / "chat_artifacts"
+                workdir.mkdir(parents=True, exist_ok=True)
                 # Test ChatTool (FAST_RESPONSE) - should prefer flash
                 chat_tool = ChatTool()
-                await chat_tool.execute({"prompt": "test", "model": "auto"})  # This should trigger auto selection
+                await chat_tool.execute(
+                    {"prompt": "test", "model": "auto", "working_directory": str(workdir)}
+                )  # This should trigger auto selection
 
                 # In auto mode, the tool should get an error requiring model selection
                 # but the suggested model should be flash
@@ -355,7 +359,7 @@ class TestAutoModeComprehensive:
             # would show models from all providers when called
 
     @pytest.mark.asyncio
-    async def test_auto_mode_model_parameter_required_error(self):
+    async def test_auto_mode_model_parameter_required_error(self, tmp_path):
         """Test that auto mode properly requires model parameter and suggests correct model."""
 
         provider_config = {
@@ -384,9 +388,12 @@ class TestAutoModeComprehensive:
 
             # Test with ChatTool (FAST_RESPONSE category)
             chat_tool = ChatTool()
+            workdir = tmp_path / "chat_artifacts"
+            workdir.mkdir(parents=True, exist_ok=True)
             result = await chat_tool.execute(
                 {
-                    "prompt": "test"
+                    "prompt": "test",
+                    "working_directory": str(workdir),
                     # Note: no model parameter provided in auto mode
                 }
             )
@@ -508,7 +515,7 @@ class TestAutoModeComprehensive:
                 assert fast_response is not None
 
     @pytest.mark.asyncio
-    async def test_actual_model_name_resolution_in_auto_mode(self):
+    async def test_actual_model_name_resolution_in_auto_mode(self, tmp_path):
         """Test that when a model is selected in auto mode, the tool executes successfully."""
 
         provider_config = {
@@ -547,7 +554,11 @@ class TestAutoModeComprehensive:
 
             with patch.object(ModelProviderRegistry, "get_provider_for_model", return_value=mock_provider):
                 chat_tool = ChatTool()
-                result = await chat_tool.execute({"prompt": "test", "model": "flash"})  # Use alias in auto mode
+                workdir = tmp_path / "chat_artifacts"
+                workdir.mkdir(parents=True, exist_ok=True)
+                result = await chat_tool.execute(
+                    {"prompt": "test", "model": "flash", "working_directory": str(workdir)}
+                )  # Use alias in auto mode
 
                 # Should succeed with proper model resolution
                 assert len(result) == 1

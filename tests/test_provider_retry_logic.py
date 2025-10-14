@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from providers.openai_provider import OpenAIModelProvider
+from providers.openai import OpenAIModelProvider
 
 
 def _mock_chat_response(content: str = "retry success") -> SimpleNamespace:

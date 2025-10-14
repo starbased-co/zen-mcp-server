@@ -1748,6 +1748,59 @@ check_codex_cli_integration() {
         print_success "Successfully configured Codex CLI"
         echo "  Config: $codex_config"
         echo "  Restart Codex CLI to use Zen MCP Server"
+
+        if ! grep -Eq '^\s*web_search\s*=' "$codex_config" 2>/dev/null; then
+            echo ""
+            print_info "Web search lets Codex pull fresh documentation for Zen's API lookup tooling."
+            read -p "Enable Codex CLI web search tool? (Y/n): " -n 1 -r
+            echo ""
+            if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+                if grep -Eq '^\s*\[tools\]' "$codex_config" 2>/dev/null; then
+                    if ! python3 - "$codex_config" <<'PY'
+import sys
+from pathlib import Path
+
+cfg_path = Path(sys.argv[1])
+content = cfg_path.read_text().splitlines()
+output = []
+in_tools = False
+added = False
+
+for line in content:
+    stripped = line.strip()
+    if stripped.startswith("[") and stripped.endswith("]"):
+        if in_tools and not added:
+            output.append("web_search = true")
+            added = True
+        in_tools = stripped == "[tools]"
+        output.append(line)
+        continue
+    if in_tools and stripped.startswith("web_search"):
+        added = True
+    output.append(line)
+
+if in_tools and not added:
+    output.append("web_search = true")
+
+cfg_path.write_text("\n".join(output) + "\n")
+PY
+                    then
+                        print_error "Failed to enable Codex web search tool. Add 'web_search = true' under [tools] in $codex_config manually."
+                    else
+                        print_success "Enabled Codex web search tool"
+                    fi
+                else
+                    {
+                        echo ""
+                        echo "[tools]"
+                        echo "web_search = true"
+                    } >> "$codex_config" && print_success "Enabled Codex web search tool" || \
+                        print_error "Failed to enable Codex web search tool. Add 'web_search = true' under [tools] in $codex_config manually."
+                fi
+            else
+                print_info "Skipping Codex web search tool enablement"
+            fi
+        fi
     else
         print_error "Failed to update Codex CLI config"
         echo "Manual config location: $codex_config"

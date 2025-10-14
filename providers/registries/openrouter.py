@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from .model_registry_base import CAPABILITY_FIELD_NAMES, CapabilityModelRegistry
-from .shared import ModelCapabilities, ProviderType
+from ..shared import ModelCapabilities, ProviderType
+from .base import CAPABILITY_FIELD_NAMES, CapabilityModelRegistry
 
 
 class OpenRouterModelRegistry(CapabilityModelRegistry):
-    """Capability registry backed by `conf/openrouter_models.json`."""
+    """Capability registry backed by ``conf/openrouter_models.json``."""
 
     def __init__(self, config_path: str | None = None) -> None:
         super().__init__(

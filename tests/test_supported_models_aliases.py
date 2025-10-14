@@ -2,7 +2,7 @@
 
 from providers.dial import DIALModelProvider
 from providers.gemini import GeminiModelProvider
-from providers.openai_provider import OpenAIModelProvider
+from providers.openai import OpenAIModelProvider
 from providers.xai import XAIModelProvider
 
 

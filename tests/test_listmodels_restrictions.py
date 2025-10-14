@@ -97,7 +97,7 @@ class TestListModelsRestrictions(unittest.TestCase):
         },
     )
     @patch("utils.model_restrictions.get_restriction_service")
-    @patch("providers.openrouter_registry.OpenRouterModelRegistry")
+    @patch("providers.registries.openrouter.OpenRouterModelRegistry")
     @patch.object(ModelProviderRegistry, "get_available_models")
     @patch.object(ModelProviderRegistry, "get_provider")
     def test_listmodels_respects_openrouter_restrictions(
@@ -239,7 +239,7 @@ class TestListModelsRestrictions(unittest.TestCase):
         self.assertIn("OpenRouter models restricted by", result)
 
     @patch.dict(os.environ, {"OPENROUTER_API_KEY": "test-key", "GEMINI_API_KEY": "gemini-test-key"}, clear=True)
-    @patch("providers.openrouter_registry.OpenRouterModelRegistry")
+    @patch("providers.registries.openrouter.OpenRouterModelRegistry")
     @patch.object(ModelProviderRegistry, "get_provider")
     def test_listmodels_shows_all_models_without_restrictions(self, mock_get_provider, mock_registry_class):
         """Test that listmodels shows all models when no restrictions are set."""

@@ -38,7 +38,7 @@ if sys.platform == "win32":
 
 # Register providers for all tests
 from providers.gemini import GeminiModelProvider  # noqa: E402
-from providers.openai_provider import OpenAIModelProvider  # noqa: E402
+from providers.openai import OpenAIModelProvider  # noqa: E402
 from providers.registry import ModelProviderRegistry  # noqa: E402
 from providers.shared import ProviderType  # noqa: E402
 from providers.xai import XAIModelProvider  # noqa: E402

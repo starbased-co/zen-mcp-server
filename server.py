@@ -57,6 +57,7 @@ from tools import (  # noqa: E402
     DebugIssueTool,
     DocgenTool,
     ListModelsTool,
+    LookupTool,
     PlannerTool,
     PrecommitTool,
     RefactorTool,
@@ -272,6 +273,7 @@ TOOLS = {
     "tracer": TracerTool(),  # Static call path prediction and control flow analysis
     "testgen": TestGenTool(),  # Step-by-step test generation workflow with expert validation
     "challenge": ChallengeTool(),  # Critical challenge prompt wrapper to avoid automatic agreement
+    "apilookup": LookupTool(),  # Quick web/API lookup instructions
     "listmodels": ListModelsTool(),  # List all available AI models by provider
     "version": VersionTool(),  # Display server version and system information
 }
@@ -354,6 +356,11 @@ PROMPT_TEMPLATES = {
         "description": "Challenge a statement critically without automatic agreement",
         "template": "Challenge this statement critically",
     },
+    "apilookup": {
+        "name": "apilookup",
+        "description": "Look up the latest API or SDK information",
+        "template": "Lookup latest API docs for {model}",
+    },
     "listmodels": {
         "name": "listmodels",
         "description": "List available AI models",
@@ -388,7 +395,7 @@ def configure_providers():
     from providers.custom import CustomProvider
     from providers.dial import DIALModelProvider
     from providers.gemini import GeminiModelProvider
-    from providers.openai_provider import OpenAIModelProvider
+    from providers.openai import OpenAIModelProvider
     from providers.openrouter import OpenRouterProvider
     from providers.shared import ProviderType
     from providers.xai import XAIModelProvider
@@ -425,7 +432,7 @@ def configure_providers():
     azure_models_available = False
     if azure_key and azure_key != "your_azure_openai_key_here" and azure_endpoint:
         try:
-            from providers.azure_registry import AzureModelRegistry
+            from providers.registries.azure import AzureModelRegistry
 
             azure_registry = AzureModelRegistry()
             if azure_registry.list_models():

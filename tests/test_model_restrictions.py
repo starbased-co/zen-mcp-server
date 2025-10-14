@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from providers.gemini import GeminiModelProvider
-from providers.openai_provider import OpenAIModelProvider
+from providers.openai import OpenAIModelProvider
 from providers.shared import ProviderType
 from utils.model_restrictions import ModelRestrictionService
 
@@ -767,7 +767,7 @@ class TestAutoModeWithRestrictions:
             # Clear registry and register only OpenAI and Gemini providers
             ModelProviderRegistry._instance = None
             from providers.gemini import GeminiModelProvider
-            from providers.openai_provider import OpenAIModelProvider
+            from providers.openai import OpenAIModelProvider
 
             ModelProviderRegistry.register_provider(ProviderType.OPENAI, OpenAIModelProvider)
             ModelProviderRegistry.register_provider(ProviderType.GOOGLE, GeminiModelProvider)

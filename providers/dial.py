@@ -2,17 +2,19 @@
 
 import logging
 import threading
-from typing import Optional
+from typing import ClassVar, Optional
 
 from utils.env import get_env
 
 from .openai_compatible import OpenAICompatibleProvider
-from .shared import ModelCapabilities, ModelResponse, ProviderType, TemperatureConstraint
+from .registries.dial import DialModelRegistry
+from .registry_provider_mixin import RegistryBackedProviderMixin
+from .shared import ModelCapabilities, ModelResponse, ProviderType
 
 logger = logging.getLogger(__name__)
 
 
-class DIALModelProvider(OpenAICompatibleProvider):
+class DIALModelProvider(RegistryBackedProviderMixin, OpenAICompatibleProvider):
     """Client for the DIAL (Data & AI Layer) aggregation service.
 
     DIAL exposes several third-party models behind a single OpenAI-compatible
@@ -23,184 +25,12 @@ class DIALModelProvider(OpenAICompatibleProvider):
 
     FRIENDLY_NAME = "DIAL"
 
+    REGISTRY_CLASS = DialModelRegistry
+    MODEL_CAPABILITIES: ClassVar[dict[str, ModelCapabilities]] = {}
+
     # Retry configuration for API calls
     MAX_RETRIES = 4
     RETRY_DELAYS = [1, 3, 5, 8]  # seconds
-
-    # Model configurations using ModelCapabilities objects
-    MODEL_CAPABILITIES = {
-        "o3-2025-04-16": ModelCapabilities(
-            provider=ProviderType.DIAL,
-            model_name="o3-2025-04-16",
-            friendly_name="DIAL (O3)",
-            intelligence_score=14,
-            context_window=200_000,
-            max_output_tokens=100_000,
-            supports_extended_thinking=False,
-            supports_system_prompts=True,
-            supports_streaming=True,
-            supports_function_calling=False,  # DIAL may not expose function calling
-            supports_json_mode=True,
-            supports_images=True,
-            max_image_size_mb=20.0,
-            supports_temperature=False,  # O3 models don't accept temperature
-            temperature_constraint=TemperatureConstraint.create("fixed"),
-            description="OpenAI O3 via DIAL - Strong reasoning model",
-            aliases=["o3"],
-        ),
-        "o4-mini-2025-04-16": ModelCapabilities(
-            provider=ProviderType.DIAL,
-            model_name="o4-mini-2025-04-16",
-            friendly_name="DIAL (O4-mini)",
-            intelligence_score=11,
-            context_window=200_000,
-            max_output_tokens=100_000,
-            supports_extended_thinking=False,
-            supports_system_prompts=True,
-            supports_streaming=True,
-            supports_function_calling=False,  # DIAL may not expose function calling
-            supports_json_mode=True,
-            supports_images=True,
-            max_image_size_mb=20.0,
-            supports_temperature=False,  # O4 models don't accept temperature
-            temperature_constraint=TemperatureConstraint.create("fixed"),
-            description="OpenAI O4-mini via DIAL - Fast reasoning model",
-            aliases=["o4-mini"],
-        ),
-        "anthropic.claude-sonnet-4.1-20250805-v1:0": ModelCapabilities(
-            provider=ProviderType.DIAL,
-            model_name="anthropic.claude-sonnet-4.1-20250805-v1:0",
-            friendly_name="DIAL (Sonnet 4.1)",
-            intelligence_score=10,
-            context_window=200_000,
-            max_output_tokens=64_000,
-            supports_extended_thinking=False,
-            supports_system_prompts=True,
-            supports_streaming=True,
-            supports_function_calling=False,
-            supports_json_mode=True,
-            supports_images=True,
-            max_image_size_mb=5.0,
-            supports_temperature=True,
-            temperature_constraint=TemperatureConstraint.create("range"),
-            description="Claude Sonnet 4.1 via DIAL - Balanced performance",
-            aliases=["sonnet-4.1", "sonnet-4"],
-        ),
-        "anthropic.claude-sonnet-4.1-20250805-v1:0-with-thinking": ModelCapabilities(
-            provider=ProviderType.DIAL,
-            model_name="anthropic.claude-sonnet-4.1-20250805-v1:0-with-thinking",
-            friendly_name="DIAL (Sonnet 4.1 Thinking)",
-            intelligence_score=11,
-            context_window=200_000,
-            max_output_tokens=64_000,
-            supports_extended_thinking=True,
-            supports_system_prompts=True,
-            supports_streaming=True,
-            supports_function_calling=False,
-            supports_json_mode=True,
-            supports_images=True,
-            max_image_size_mb=5.0,
-            supports_temperature=True,
-            temperature_constraint=TemperatureConstraint.create("range"),
-            description="Claude Sonnet 4.1 with thinking mode via DIAL",
-            aliases=["sonnet-4.1-thinking", "sonnet-4-thinking"],
-        ),
-        "anthropic.claude-opus-4.1-20250805-v1:0": ModelCapabilities(
-            provider=ProviderType.DIAL,
-            model_name="anthropic.claude-opus-4.1-20250805-v1:0",
-            friendly_name="DIAL (Opus 4.1)",
-            intelligence_score=14,
-            context_window=200_000,
-            max_output_tokens=64_000,
-            supports_extended_thinking=False,
-            supports_system_prompts=True,
-            supports_streaming=True,
-            supports_function_calling=False,
-            supports_json_mode=True,
-            supports_images=True,
-            max_image_size_mb=5.0,
-            supports_temperature=True,
-            temperature_constraint=TemperatureConstraint.create("range"),
-            description="Claude Opus 4.1 via DIAL - Most capable Claude model",
-            aliases=["opus-4.1", "opus-4"],
-        ),
-        "anthropic.claude-opus-4.1-20250805-v1:0-with-thinking": ModelCapabilities(
-            provider=ProviderType.DIAL,
-            model_name="anthropic.claude-opus-4.1-20250805-v1:0-with-thinking",
-            friendly_name="DIAL (Opus 4.1 Thinking)",
-            intelligence_score=15,
-            context_window=200_000,
-            max_output_tokens=64_000,
-            supports_extended_thinking=True,
-            supports_system_prompts=True,
-            supports_streaming=True,
-            supports_function_calling=False,
-            supports_json_mode=True,
-            supports_images=True,
-            max_image_size_mb=5.0,
-            supports_temperature=True,
-            temperature_constraint=TemperatureConstraint.create("range"),
-            description="Claude Opus 4.1 with thinking mode via DIAL",
-            aliases=["opus-4.1-thinking", "opus-4-thinking"],
-        ),
-        "gemini-2.5-pro-preview-03-25-google-search": ModelCapabilities(
-            provider=ProviderType.DIAL,
-            model_name="gemini-2.5-pro-preview-03-25-google-search",
-            friendly_name="DIAL (Gemini 2.5 Pro Search)",
-            intelligence_score=17,
-            context_window=1_000_000,
-            max_output_tokens=65_536,
-            supports_extended_thinking=False,
-            supports_system_prompts=True,
-            supports_streaming=True,
-            supports_function_calling=False,
-            supports_json_mode=True,
-            supports_images=True,
-            max_image_size_mb=20.0,
-            supports_temperature=True,
-            temperature_constraint=TemperatureConstraint.create("range"),
-            description="Gemini 2.5 Pro with Google Search via DIAL",
-            aliases=["gemini-2.5-pro-search"],
-        ),
-        "gemini-2.5-pro-preview-05-06": ModelCapabilities(
-            provider=ProviderType.DIAL,
-            model_name="gemini-2.5-pro-preview-05-06",
-            friendly_name="DIAL (Gemini 2.5 Pro)",
-            intelligence_score=18,
-            context_window=1_000_000,
-            max_output_tokens=65_536,
-            supports_extended_thinking=False,
-            supports_system_prompts=True,
-            supports_streaming=True,
-            supports_function_calling=False,
-            supports_json_mode=True,
-            supports_images=True,
-            max_image_size_mb=20.0,
-            supports_temperature=True,
-            temperature_constraint=TemperatureConstraint.create("range"),
-            description="Gemini 2.5 Pro via DIAL - Deep reasoning",
-            aliases=["gemini-2.5-pro"],
-        ),
-        "gemini-2.5-flash-preview-05-20": ModelCapabilities(
-            provider=ProviderType.DIAL,
-            model_name="gemini-2.5-flash-preview-05-20",
-            friendly_name="DIAL (Gemini Flash 2.5)",
-            intelligence_score=10,
-            context_window=1_000_000,
-            max_output_tokens=65_536,
-            supports_extended_thinking=False,
-            supports_system_prompts=True,
-            supports_streaming=True,
-            supports_function_calling=False,
-            supports_json_mode=True,
-            supports_images=True,
-            max_image_size_mb=20.0,
-            supports_temperature=True,
-            temperature_constraint=TemperatureConstraint.create("range"),
-            description="Gemini 2.5 Flash via DIAL - Ultra-fast",
-            aliases=["gemini-2.5-flash"],
-        ),
-    }
 
     def __init__(self, api_key: str, **kwargs):
         """Initialize DIAL provider with API key and host.
@@ -209,6 +39,7 @@ class DIALModelProvider(OpenAICompatibleProvider):
             api_key: DIAL API key for authentication
             **kwargs: Additional configuration options
         """
+        self._ensure_registry()
         # Get DIAL API host from environment or kwargs
         dial_host = kwargs.get("base_url") or get_env("DIAL_API_HOST") or "https://core.dialx.ai"
 

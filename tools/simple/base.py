@@ -404,11 +404,15 @@ class SimpleTool(BaseTool):
 
             # Get the provider from model context (clean OOP - no re-fetching)
             provider = self._model_context.provider
+            capabilities = self._model_context.capabilities
 
             # Get system prompt for this tool
             base_system_prompt = self.get_system_prompt()
+            capability_augmented_prompt = self._augment_system_prompt_with_capabilities(
+                base_system_prompt, capabilities
+            )
             language_instruction = self.get_language_instruction()
-            system_prompt = language_instruction + base_system_prompt
+            system_prompt = language_instruction + capability_augmented_prompt
 
             # Generate AI response using the provider
             logger.info(f"Sending request to {provider.get_provider_type().value} API for {self.get_name()}")
@@ -423,7 +427,6 @@ class SimpleTool(BaseTool):
             logger.debug(f"Prompt length: {len(prompt)} characters (~{estimated_tokens:,} tokens)")
 
             # Resolve model capabilities for feature gating
-            capabilities = self._model_context.capabilities
             supports_thinking = capabilities.supports_extended_thinking
 
             # Generate content with provider abstraction

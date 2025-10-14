@@ -11,8 +11,8 @@ from typing import Any, Optional
 
 from mcp.types import TextContent
 
-from providers.custom_registry import CustomEndpointModelRegistry
-from providers.openrouter_registry import OpenRouterModelRegistry
+from providers.registries.custom import CustomEndpointModelRegistry
+from providers.registries.openrouter import OpenRouterModelRegistry
 from tools.models import ToolModelCategory, ToolOutput
 from tools.shared.base_models import ToolRequest
 from tools.shared.base_tool import BaseTool
@@ -140,6 +140,8 @@ class ListModelsTool(BaseTool):
             except AttributeError:
                 description = "No description available"
             lines = [header, f"  - {context_str}", f"  - {description}"]
+            if capabilities.allow_code_generation:
+                lines.append("  - Supports structured code generation")
             return lines
 
         # Check each native provider type
@@ -187,6 +189,8 @@ class ListModelsTool(BaseTool):
 
                         output_lines.append(f"- `{model_name}` - {context_str}")
                         output_lines.append(f"  - {description}")
+                        if capabilities.allow_code_generation:
+                            output_lines.append("  - Supports structured code generation")
 
                         for alias in capabilities.aliases or []:
                             if alias != model_name:

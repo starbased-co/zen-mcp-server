@@ -55,7 +55,7 @@ def _extract_number(text: str) -> str:
 
 @pytest.mark.asyncio
 @pytest.mark.no_mock_provider
-async def test_chat_cross_model_continuation(monkeypatch):
+async def test_chat_cross_model_continuation(monkeypatch, tmp_path):
     """Verify continuation across Gemini then OpenAI using recorded interactions."""
 
     env_updates = {
@@ -105,7 +105,7 @@ async def test_chat_cross_model_continuation(monkeypatch):
 
         ModelProviderRegistry.reset_for_testing()
         from providers.gemini import GeminiModelProvider
-        from providers.openai_provider import OpenAIModelProvider
+        from providers.openai import OpenAIModelProvider
 
         ModelProviderRegistry.register_provider(ProviderType.OPENAI, OpenAIModelProvider)
         ModelProviderRegistry.register_provider(ProviderType.GOOGLE, GeminiModelProvider)
@@ -115,10 +115,13 @@ async def test_chat_cross_model_continuation(monkeypatch):
         m.setattr(conversation_memory.uuid, "uuid4", lambda: FIXED_THREAD_ID)
 
         chat_tool = ChatTool()
+        working_directory = str(tmp_path)
+
         step1_args = {
             "prompt": "Pick a number between 1 and 10 and respond with JUST that number.",
             "model": "gemini-2.5-flash",
             "temperature": 0.2,
+            "working_directory": working_directory,
         }
 
         step1_result = await chat_tool.execute(step1_args)
@@ -170,7 +173,7 @@ async def test_chat_cross_model_continuation(monkeypatch):
 
         ModelProviderRegistry.reset_for_testing()
         from providers.gemini import GeminiModelProvider
-        from providers.openai_provider import OpenAIModelProvider
+        from providers.openai import OpenAIModelProvider
 
         ModelProviderRegistry.register_provider(ProviderType.OPENAI, OpenAIModelProvider)
         ModelProviderRegistry.register_provider(ProviderType.GOOGLE, GeminiModelProvider)
@@ -183,6 +186,7 @@ async def test_chat_cross_model_continuation(monkeypatch):
             "model": "gpt-5",
             "continuation_id": continuation_id,
             "temperature": 0.2,
+            "working_directory": working_directory,
         }
 
         step2_result = await chat_tool.execute(step2_args)

@@ -9,7 +9,7 @@ import pytest
 import utils.env as env_config
 import utils.model_restrictions as model_restrictions
 from providers.gemini import GeminiModelProvider
-from providers.openai_provider import OpenAIModelProvider
+from providers.openai import OpenAIModelProvider
 from providers.openrouter import OpenRouterProvider
 from providers.registry import ModelProviderRegistry
 from providers.shared import ProviderType

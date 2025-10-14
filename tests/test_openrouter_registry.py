@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 import pytest
 
-from providers.openrouter_registry import OpenRouterModelRegistry
+from providers.registries.openrouter import OpenRouterModelRegistry
 from providers.shared import ModelCapabilities, ProviderType
 
 

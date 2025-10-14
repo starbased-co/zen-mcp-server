@@ -39,5 +39,64 @@ Mirror production modules inside `tests/` and name tests `test_<behavior>` or `T
 ## Commit & Pull Request Guidelines
 Follow Conventional Commits: `type(scope): summary`, where `type` is one of `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, or `chore`. Keep commits focused, referencing issues or simulator cases when helpful. Pull requests should outline intent, list validation commands executed, flag configuration or tool toggles, and attach screenshots or log snippets when user-visible behavior changes.
 
+## GitHub CLI Commands
+The GitHub CLI (`gh`) streamlines issue and PR management directly from the terminal.
+
+### Viewing Issues
+```bash
+# View issue details in current repository
+gh issue view <issue-number>
+
+# View issue from specific repository
+gh issue view <issue-number> --repo owner/repo-name
+
+# View issue with all comments
+gh issue view <issue-number> --comments
+
+# Get issue data as JSON for scripting
+gh issue view <issue-number> --json title,body,author,state,labels,comments
+
+# Open issue in web browser
+gh issue view <issue-number> --web
+```
+
+### Managing Issues
+```bash
+# List all open issues
+gh issue list
+
+# List issues with filters
+gh issue list --label bug --state open
+
+# Create a new issue
+gh issue create --title "Issue title" --body "Description"
+
+# Close an issue
+gh issue close <issue-number>
+
+# Reopen an issue
+gh issue reopen <issue-number>
+```
+
+### Pull Request Operations
+```bash
+# View PR details
+gh pr view <pr-number>
+
+# List pull requests
+gh pr list
+
+# Create a PR from current branch
+gh pr create --title "PR title" --body "Description"
+
+# Check out a PR locally
+gh pr checkout <pr-number>
+
+# Merge a PR
+gh pr merge <pr-number>
+```
+
+Install GitHub CLI: `brew install gh` (macOS) or visit https://cli.github.com for other platforms.
+
 ## Security & Configuration Tips
 Store API keys and provider URLs in `.env` or your MCP client config; never commit secrets or generated log artifacts. Use `run-server.sh` to regenerate environments and verify connectivity after dependency changes. When adding providers or tools, sanitize prompts and responses, document required environment variables in `docs/`, and update `claude_config_example.json` if new capabilities ship by default.
