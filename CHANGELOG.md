@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v9.0.2 (2025-10-15)
+
+### Bug Fixes
+
+- Update Claude CLI commands to new mcp syntax
+  ([`a2189cb`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/a2189cb88a295ebad6268b9b08c893cd65bc1d89))
+
+### Chores
+
+- Sync version to config.py [skip ci]
+  ([`d08cdc6`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/d08cdc6691e0f68917f2824945905b7256e0e568))
+
+
 ## v9.0.1 (2025-10-14)
 
 ### Bug Fixes
