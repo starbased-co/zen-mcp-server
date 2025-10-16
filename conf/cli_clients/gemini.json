@@ -4,9 +4,7 @@
   "additional_args": [
     "--telemetry",
     "false",
-    "--yolo",
-    "-o",
-    "json"
+    "--yolo"
   ],
   "env": {},
   "roles": {
