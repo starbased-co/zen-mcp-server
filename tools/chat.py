@@ -246,7 +246,20 @@ class ChatTool(SimpleTool):
                     body = f"{sanitized_warning}\n\n{block.strip()}".strip()
                 else:
                     if not sanitized_text:
-                        sanitized_text = "Generated code saved to zen_generated.code. Follow the structured instructions in that file exactly before continuing."
+                        sanitized_text = (
+                            "Generated code saved to zen_generated.code.\n"
+                            "\n"
+                            "CRITICAL: Contains mixed instructions + partial snippets - NOT complete code to copy as-is!\n"
+                            "\n"
+                            "You MUST:\n"
+                            "  1. Read as a proposal from partial context - you may need to read the file in sections\n"
+                            "  2. Implement ideas using YOUR complete codebase context and understanding\n"
+                            "  3. Never paste wholesale - snippets may be partial with missing lines, pasting will corrupt your code!\n"
+                            "  4. Adapt to fit your actual structure and style\n"
+                            "  5. Build/lint/test after implementation to verify correctness\n"
+                            "\n"
+                            "Treat as guidance to implement thoughtfully, not ready-to-paste code."
+                        )
 
                     instruction = self._build_agent_instruction(artifact_path)
                     body = self._join_sections(sanitized_text, instruction)
@@ -323,26 +336,19 @@ class ChatTool(SimpleTool):
     @staticmethod
     def _build_agent_instruction(artifact_path: Path) -> str:
         return (
-            f"CONTINUING FROM PREVIOUS DISCUSSION: The coding assistant has analyzed our conversation context and generated "
-            f"a structured implementation plan at `{artifact_path}`. This is a direct continuation of our discussion—all previous "
-            "context, requirements, and shared code remain relevant.\n"
+            f"CONTINUING FROM PREVIOUS DISCUSSION: Implementation plan saved to `{artifact_path}`.\n"
             "\n"
-            f"MANDATORY NEXT STEP: Open `{artifact_path}` immediately and review the implementation plan:\n"
-            "1. Read the step-by-step instructions—they reference our previous discussion. You may need to read the file in parts if it's too long.\n"
-            "2. Review each <NEWFILE:…> or <UPDATED_EXISTING_FILE:…> section in the context of what we've discussed\n"
-            "3. Verify the proposed changes align with the requirements and code we've already shared\n"
-            "4. Check for syntax errors, missing imports, or incomplete implementations\n"
+            f"CRITICAL WARNING: `{artifact_path}` may contain partial code snippets from another AI with limited context. "
+            "Wholesale copy-pasting MAY CORRUPT your codebase with incomplete logic and missing lines.\n"
             "\n"
-            "Then systematically apply the changes:\n"
-            "- Create new files or update existing ones as instructed, maintaining code style consistency\n"
-            "- If updating existing code we discussed earlier, carefully preserve unmodified sections\n"
-            "- Run syntax validation after each modification\n"
-            "- Execute relevant tests to confirm functionality\n"
-            "- Verify the implementation works end-to-end with existing code\n"
+            "Required workflow:\n"
+            "1. For <UPDATED_EXISTING_FILE:...> blocks: Partial excerpts only. Understand the intent and implement using YOUR full context. "
+            "DO NOT copy wholesale - adapt ideas to fit actual structure.\n"
+            "2. For <NEWFILE:...> blocks: Understand proposal and create properly. Verify completeness (imports, syntax, logic).\n"
+            "3. Validation: After ALL changes, verify correctness using available tools (build/compile, linters, tests, type checks, etc.).\n"
+            f"4. Cleanup: After you're done reading and applying changes, delete `{artifact_path}` once verified to prevent stale instructions.\n"
             "\n"
-            "Remember: This builds upon our conversation. The generated code reflects the full context of what we've discussed, "
-            "including any files, requirements, or constraints mentioned earlier. Proceed with implementation immediately."
-            "Only after you finish applying ALL the changes completely: delete `zen_generated.code` so stale instructions do not linger."
+            "Treat this as a patch-set requiring manual integration, not ready-to-paste code. You have full codebase context - use it."
         )
 
     @staticmethod
