@@ -2,6 +2,45 @@
 
 <!-- version list -->
 
+## v9.0.3 (2025-10-16)
+
+### Bug Fixes
+
+- Remove duplicate -o json flag in gemini CLI config
+  ([`3b2eff5`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/3b2eff58ac0e2388045a7442c63f56ce259b54ba))
+
+### Chores
+
+- Sync version to config.py [skip ci]
+  ([`b205d71`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/b205d7159b674ce47ebc11af7255d1e3556fff93))
+
+
+## v9.0.2 (2025-10-15)
+
+### Bug Fixes
+
+- Update Claude CLI commands to new mcp syntax
+  ([`a2189cb`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/a2189cb88a295ebad6268b9b08c893cd65bc1d89))
+
+### Chores
+
+- Sync version to config.py [skip ci]
+  ([`d08cdc6`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/d08cdc6691e0f68917f2824945905b7256e0e568))
+
+
+## v9.0.1 (2025-10-14)
+
+### Bug Fixes
+
+- Add JSON output flag to gemini CLI configuration
+  ([`eb3dff8`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/eb3dff845828f60ff2659586883af622b8b035eb))
+
+### Chores
+
+- Sync version to config.py [skip ci]
+  ([`b9408aa`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/b9408aae8860d43b1da0ba67f9db98db7e4de2cf))
+
+
 ## v9.0.0 (2025-10-08)
 
 ### Chores
