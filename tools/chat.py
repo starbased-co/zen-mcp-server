@@ -28,9 +28,11 @@ from .simple.base import SimpleTool
 CHAT_FIELD_DESCRIPTIONS = {
     "prompt": (
         "Your question or idea for collaborative thinking. Provide detailed context, including your goal, what you've tried, and any specific challenges. "
-        "CRITICAL: To discuss code, use 'files' parameter instead of pasting code blocks here."
+        "WARNING: Large inline code must NOT be shared in prompt. Provide full-path to files on disk as separate parameter."
     ),
-    "files": "Absolute file or folder paths for code context.",
+    "files": (
+        "Absolute file or folder paths for code context. Required whenever you reference source code—supply the FULL absolute path (do not shorten)."
+    ),
     "images": "Image paths (absolute) or base64 strings for optional visual context.",
     "working_directory": (
         "Absolute directory path where generated code artifacts are stored. The directory must already exist."
@@ -310,24 +312,15 @@ class ChatTool(SimpleTool):
         if not matches:
             return None, text, 0
 
-        blocks = [match.group(0).strip() for match in matches]
-        combined_block = "\n\n".join(blocks)
+        last_match = matches[-1]
+        block = last_match.group(0).strip()
 
-        remainder_parts: list[str] = []
-        last_end = 0
-        for match in matches:
-            start, end = match.span()
-            segment = text[last_end:start]
-            if segment:
-                remainder_parts.append(segment)
-            last_end = end
-        tail = text[last_end:]
-        if tail:
-            remainder_parts.append(tail)
+        # Merge the text before and after the final block while trimming excess whitespace
+        before = text[: last_match.start()]
+        after = text[last_match.end() :]
+        remainder = self._join_sections(before, after)
 
-        remainder = self._join_sections(*remainder_parts)
-
-        return combined_block, remainder, len(blocks)
+        return block, remainder, len(matches)
 
     def _persist_generated_code_block(self, block: str, working_directory: str) -> Path:
         expanded = os.path.expanduser(working_directory)

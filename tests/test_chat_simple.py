@@ -147,10 +147,85 @@ class TestChatTool:
         saved_path = tmp_path / "zen_generated.code"
         saved_content = saved_path.read_text(encoding="utf-8")
 
-        assert "print('hello')" in saved_content
         assert "print('world')" in saved_content
-        assert saved_content.count("<GENERATED-CODE>") == 2
+        assert "print('hello')" not in saved_content
+        assert saved_content.count("<GENERATED-CODE>") == 1
+        assert "<GENERATED-CODE>print('hello')" in formatted
         assert str(saved_path) in formatted
+
+    def test_format_response_single_generated_code_block(self, tmp_path):
+        """Single <GENERATED-CODE> block should be saved and removed from narrative."""
+        tool = ChatTool()
+        tool._model_context = SimpleNamespace(capabilities=SimpleNamespace(allow_code_generation=True))
+
+        response = (
+            "Intro text before code.\n"
+            "<GENERATED-CODE>print('only-once')</GENERATED-CODE>\n"
+            "Closing thoughts after code."
+        )
+
+        request = ChatRequest(prompt="Test", working_directory=str(tmp_path))
+
+        formatted = tool.format_response(response, request)
+
+        saved_path = tmp_path / "zen_generated.code"
+        saved_content = saved_path.read_text(encoding="utf-8")
+
+        assert "print('only-once')" in saved_content
+        assert "<GENERATED-CODE>" in saved_content
+        assert "print('only-once')" not in formatted
+        assert "Closing thoughts after code." in formatted
+
+    def test_format_response_ignores_unclosed_generated_code(self, tmp_path):
+        """Unclosed generated-code tags should be ignored to avoid accidental clipping."""
+        tool = ChatTool()
+        tool._model_context = SimpleNamespace(capabilities=SimpleNamespace(allow_code_generation=True))
+
+        response = "Intro text\n<GENERATED-CODE>print('oops')\nStill ongoing"
+
+        request = ChatRequest(prompt="Test", working_directory=str(tmp_path))
+
+        formatted = tool.format_response(response, request)
+
+        saved_path = tmp_path / "zen_generated.code"
+        assert not saved_path.exists()
+        assert "print('oops')" in formatted
+
+    def test_format_response_ignores_orphaned_closing_tag(self, tmp_path):
+        """Stray closing tags should not trigger extraction."""
+        tool = ChatTool()
+        tool._model_context = SimpleNamespace(capabilities=SimpleNamespace(allow_code_generation=True))
+
+        response = "Intro text\n</GENERATED-CODE> just text"
+
+        request = ChatRequest(prompt="Test", working_directory=str(tmp_path))
+
+        formatted = tool.format_response(response, request)
+
+        saved_path = tmp_path / "zen_generated.code"
+        assert not saved_path.exists()
+        assert "</GENERATED-CODE> just text" in formatted
+
+    def test_format_response_preserves_narrative_after_generated_code(self, tmp_path):
+        """Narrative content after generated code must remain intact in the formatted output."""
+        tool = ChatTool()
+        tool._model_context = SimpleNamespace(capabilities=SimpleNamespace(allow_code_generation=True))
+
+        response = (
+            "Summary before code.\n"
+            "<GENERATED-CODE>print('demo')</GENERATED-CODE>\n"
+            "### Follow-up\n"
+            "Further analysis and guidance after the generated snippet.\n"
+        )
+
+        request = ChatRequest(prompt="Test", working_directory=str(tmp_path))
+
+        formatted = tool.format_response(response, request)
+
+        assert "Summary before code." in formatted
+        assert "### Follow-up" in formatted
+        assert "Further analysis and guidance after the generated snippet." in formatted
+        assert "print('demo')" not in formatted
 
     def test_tool_name(self):
         """Test tool name is correct"""
