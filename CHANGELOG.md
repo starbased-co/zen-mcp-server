@@ -2,6 +2,26 @@
 
 <!-- version list -->
 
+## v9.1.1 (2025-10-17)
+
+### Bug Fixes
+
+- Failing test
+  ([`aed3e3e`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/aed3e3ee80c440ac8ab0d4abbf235b84df723d18))
+
+- Handler for parsing multiple generated code blocks
+  ([`f4c20d2`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/f4c20d2a20e1c57d8b10e8f508e07e2a8d72f94a))
+
+- Improved error reporting; codex cli would at times fail to figure out how to handle plain-text /
+  JSON errors
+  ([`95e69a7`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/95e69a7cb234305dcd37dcdd2f22be715922e9a8))
+
+### Chores
+
+- Sync version to config.py [skip ci]
+  ([`942757a`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/942757a360a74c021b2a1aa63e394f18f5abcecd))
+
+
 ## v9.1.0 (2025-10-17)
 
 ### Chores
