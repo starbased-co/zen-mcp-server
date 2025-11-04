@@ -38,6 +38,11 @@ class CLinkRequest(BaseModel):
         default=None,
         description="Optional role preset defined in the CLI configuration (defaults to 'default').",
     )
+    custom_system_prompt: str | None = Field(
+        default=None,
+        description="Optional custom system prompt. Can be either a string containing the prompt directly, "
+        "or an absolute file path to read the prompt from. Overrides the role's default prompt_path for this call only.",
+    )
     absolute_file_paths: list[str] = Field(
         default_factory=list,
         description=COMMON_FIELD_DESCRIPTIONS["absolute_file_paths"],
@@ -140,6 +145,13 @@ class CLinkTool(SimpleTool):
                 "enum": self._all_roles or ["default"],
                 "description": role_description,
             },
+            "custom_system_prompt": {
+                "type": "string",
+                "description": (
+                    "Optional custom system prompt. Can be either a string containing the prompt directly, "
+                    "or an absolute file path to read the prompt from. Overrides the role's default prompt_path for this call only."
+                ),
+            },
             "absolute_file_paths": SchemaBuilder.SIMPLE_FIELD_SCHEMAS["absolute_file_paths"],
             "images": SchemaBuilder.COMMON_FIELD_SCHEMAS["images"],
             "continuation_id": SchemaBuilder.COMMON_FIELD_SCHEMAS["continuation_id"],
@@ -189,7 +201,11 @@ class CLinkTool(SimpleTool):
 
         self._model_context = arguments.get("_model_context")
 
-        system_prompt_text = role_config.prompt_path.read_text(encoding="utf-8")
+        custom_prompt = self._resolve_custom_system_prompt(request.custom_system_prompt)
+        if custom_prompt:
+            system_prompt_text = custom_prompt
+        else:
+            system_prompt_text = role_config.prompt_path.read_text(encoding="utf-8")
         include_system_prompt = not self._use_external_system_prompt(client_config)
 
         try:
@@ -261,7 +277,11 @@ class CLinkTool(SimpleTool):
     async def prepare_prompt(self, request) -> str:
         client_config = self._registry.get_client(request.cli_name)
         role_config = client_config.get_role(request.role)
-        system_prompt_text = role_config.prompt_path.read_text(encoding="utf-8")
+        custom_prompt = self._resolve_custom_system_prompt(request.custom_system_prompt)
+        if custom_prompt:
+            system_prompt_text = custom_prompt
+        else:
+            system_prompt_text = role_config.prompt_path.read_text(encoding="utf-8")
         include_system_prompt = not self._use_external_system_prompt(client_config)
         return await self._prepare_prompt_for_role(
             request,
@@ -437,6 +457,40 @@ class CLinkTool(SimpleTool):
     def _raise_tool_error(self, message: str, metadata: dict[str, Any] | None = None) -> None:
         error_output = ToolOutput(status="error", content=message, content_type="text", metadata=metadata)
         raise ToolExecutionError(error_output.model_dump_json())
+
+    def _resolve_custom_system_prompt(self, custom_prompt: str | None) -> str | None:
+        """Resolve custom system prompt - either read from file or use as direct string.
+
+        Args:
+            custom_prompt: Either a direct string prompt or an absolute file path
+
+        Returns:
+            Resolved prompt text or None if no custom prompt provided
+
+        Raises:
+            ToolExecutionError: If file path is invalid or cannot be read
+        """
+        if not custom_prompt:
+            return None
+
+        custom_prompt = custom_prompt.strip()
+        if not custom_prompt:
+            return None
+
+        path = Path(custom_prompt)
+
+        if path.is_absolute() and path.exists() and path.is_file():
+            try:
+                return path.read_text(encoding="utf-8")
+            except Exception as exc:
+                self._raise_tool_error(f"Failed to read custom system prompt from file '{custom_prompt}': {exc}")
+        elif path.is_absolute() and not path.exists():
+            self._raise_tool_error(
+                f"Custom system prompt file not found: '{custom_prompt}'. "
+                "Provide either a direct string or a valid absolute file path."
+            )
+
+        return custom_prompt
 
     def _agent_capabilities_guidance(self) -> str:
         return (
