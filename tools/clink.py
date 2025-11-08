@@ -494,8 +494,8 @@ class CLinkTool(SimpleTool):
 
     def _agent_capabilities_guidance(self) -> str:
         return (
-            "You are operating through the Gemini CLI agent. You have access to your full suite of "
-            "CLI capabilities—including launching web searches, reading files, and using any other "
+            "You are an invoked agent operating through the Zen `clink` CLI Agent Link tool. You have access to your full suite of "
+            "CLI capabilities and MCP tools, including launching web searches, reading files, and using any other "
             "available tools. Gather current information yourself and deliver the final answer without "
             "asking the Zen MCP host to perform searches or file reads."
         )
